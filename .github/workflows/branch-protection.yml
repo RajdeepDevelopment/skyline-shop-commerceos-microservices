@@ -1,10 +1,6 @@
 name: 🛡️ Enterprise Branch Protection
 
 on:
-  push:
-    branches:
-      - main
-      - development
   pull_request:
     branches:
       - main
@@ -31,27 +27,7 @@ jobs:
           fetch-depth: 0
 
       # --------------------------------------------------
-      # 1. Block direct pushes to protected branches
-      # --------------------------------------------------
-      - name: � Debug Information
-        run: |
-          echo "Actor: ${{ github.actor }}"
-          echo "Ref: ${{ github.ref }}"
-          echo "Ref Name: ${{ github.ref_name }}"
-
-      - name: �🚫 Prevent Direct Push to Protected Branches
-        if: |
-          github.event_name == 'push' && 
-          (github.ref_name == 'main' || github.ref_name == 'development') && 
-          github.actor != 'dependabot[bot]' && 
-          github.actor != 'RajdeepDevelopment'
-        run: |
-          echo "❌ Direct pushes to protected branches are not allowed for ${{ github.actor }}."
-          echo "Use Pull Requests with approvals for all changes."
-          exit 1
-
-      # --------------------------------------------------
-      # 2. Conventional commit validation
+      # 1. Conventional commit validation
       # --------------------------------------------------
       - name: 📝 Validate Conventional Commits
         uses: wagoid/commitlint-github-action@v6
