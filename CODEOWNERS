@@ -1,0 +1,9 @@
+# Global owners
+* @core-backend-team
+
+# Domain owners
+/apps/auth-service/ @auth-team
+/apps/order-service/ @order-team
+/apps/payment-service/ @payment-team
+/libs/ @platform-team
+/infrastructure/ @devops-team

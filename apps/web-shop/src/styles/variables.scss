@@ -1,0 +1,14 @@
+$primary-color: #0ea5e9;
+$bg-dark: #0f172a;
+$glass-bg: rgba(255, 255, 255, 0.05);
+$glass-border: rgba(255, 255, 255, 0.1);
+
+@mixin glass-effect {
+  background: $glass-bg;
+  backdrop-filter: blur(10px);
+  border: 1px solid $glass-border;
+}
+
+.custom-glass {
+  @include glass-effect;
+}
