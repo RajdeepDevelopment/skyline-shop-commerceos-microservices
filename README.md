@@ -29,13 +29,13 @@ This platform is an elite-level implementation of a modern e-commerce backend, d
 
 ## 🗺️ Documentation Portal
 
-| Layer                     | Focus                      | Links                                                                                                                                                                                            |
-| :------------------------ | :------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **🏗️ Architecture**    | System design & principles | [Deep Dive](./docs/architecture/system-design-deep-dive.md) • [Overview](./docs/architecture/system-overview.md) • [CQRS](./docs/architecture/cqrs-pattern.md)                               |
+| Layer                 | Focus                      | Links                                                                                                                                                                                        |
+| :-------------------- | :------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **🏗️ Architecture**   | System design & principles | [Deep Dive](./docs/architecture/system-design-deep-dive.md) • [Overview](./docs/architecture/system-overview.md) • [CQRS](./docs/architecture/cqrs-pattern.md)                               |
 | **🛡️ Reliability**    | Scaling & Resiliency       | [Scaling & Sharding](./docs/infrastructure/scaling-and-sharding.md) • [Resiliency Patterns](./docs/architecture/resiliency-patterns.md) • [Testing](./docs/architecture/testing-strategy.md) |
-| **🔐 Security**          | Protection & Identity      | [Security Architecture](./docs/architecture/security-architecture.md) • [Auth Flow](./docs/flows/authentication-flow.md) • [Security Policy](./SECURITY.md)                                  |
-| **🧩 Services**         | Domain Implementation      | [API Gateway](./apps/api-gateway/README.md) • [Order Service](./apps/order-service/README.md) • [Full Catalog](./docs/services/README.md)                                                    |
-| **📈 Observability**    | Metrics & Monitoring       | [Monitoring Strategy](./docs/infrastructure/observability.md) • [Glossary](./GLOSSARY.md)                                                                                                      |
+| **🔐 Security**       | Protection & Identity      | [Security Architecture](./docs/architecture/security-architecture.md) • [Auth Flow](./docs/flows/authentication-flow.md) • [Security Policy](./SECURITY.md)                                  |
+| **🧩 Services**       | Domain Implementation      | [API Gateway](./apps/api-gateway/README.md) • [Order Service](./apps/order-service/README.md) • [Full Catalog](./docs/services/README.md)                                                    |
+| **📈 Observability**  | Metrics & Monitoring       | [Monitoring Strategy](./docs/infrastructure/observability.md) • [Glossary](./GLOSSARY.md)                                                                                                    |
 | **🛠️ Infrastructure** | Tooling & DevOps           | [Docker Setup](./docs/infrastructure/docker-setup.md) • [Nginx Proxy](./docs/infrastructure/nginx.md) • [Roadmap](./ROADMAP.md)                                                              |
 
 ---
