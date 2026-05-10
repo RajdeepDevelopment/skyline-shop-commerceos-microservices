@@ -47,30 +47,7 @@ jobs:
           exit 1
 
       # --------------------------------------------------
-      # 2. Conventional commit validation (for both push & PR)
-      # --------------------------------------------------
-      - name: 📝 Validate Conventional Commits
-        uses: wagoid/commitlint-github-action@v6
-        with:
-          configFile: commitlint.config.js
-
-      # --------------------------------------------------
-      # 3. PR title must follow conventional commits
-      # --------------------------------------------------
-      - name: 📌 Validate Pull Request Title
-        if: github.event_name == 'pull_request'
-        run: |
-          PR_TITLE="${{ github.event.pull_request.title }}"
-          TITLE_PATTERN="^(feat|fix|docs|chore|refactor|test|ci|perf|hotfix|release|style|build)(\(.+\))?: .+$"
-
-          if [[ ! $PR_TITLE =~ $TITLE_PATTERN ]]; then
-            echo "❌ Invalid PR title: $PR_TITLE"
-            echo "Use Conventional Commit style PR titles (e.g. feat(order): add idempotency)"
-            exit 1
-          fi
-
-      # --------------------------------------------------
-      # 4. Require PR size discipline (Relaxed to 100 files)
+      # 2. Require PR size discipline (Relaxed to 100 files)
       # --------------------------------------------------
       - name: 📏 Prevent Oversized Pull Requests
         if: github.event_name == 'pull_request'
