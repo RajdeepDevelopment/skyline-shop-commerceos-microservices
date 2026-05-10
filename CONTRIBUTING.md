@@ -1,10 +1,10 @@
-# 🤝 Contributing to E-Commerce Microservices Platform
+# ðŸ¤ Contributing to E-Commerce Microservices Platform
 
 Thank you for your interest in contributing! As a production-grade engineering reference, we maintain high standards for code quality, architectural consistency, and documentation.
 
 ---
 
-## 🏗️ Engineering Standards
+## ðŸ—ï¸ Engineering Standards
 
 ### 1. Architectural Integrity
 
@@ -21,7 +21,7 @@ Thank you for your interest in contributing! As a production-grade engineering r
 
 ---
 
-## 🚀 Development Workflow
+## ðŸš€ Development Workflow
 
 ### 1. Branching Strategy
 
@@ -40,7 +40,7 @@ Thank you for your interest in contributing! As a production-grade engineering r
 
 ---
 
-## 🛠️ Local Development
+## ðŸ› ï¸ Local Development
 
 ### Automated Setup
 
@@ -61,7 +61,7 @@ pnpm run start:dev order-service
 
 ---
 
-## 📜 Coding Style
+## ðŸ“œ Coding Style
 
 - **SOLID**: We strictly adhere to SOLID principles and Clean Architecture.
 - **Linting**: Standard NestJS/TypeScript rules enforced by ESLint.
@@ -69,12 +69,12 @@ pnpm run start:dev order-service
 
 ---
 
-## 💬 Communication
+## ðŸ’¬ Communication
 
 For major architectural changes, please open an **RFC (Request for Comments)** issue first to discuss the design before implementation.
 
 ---
 
 <div align="center">
-  MIT License • 2026 Production-Grade Engineering Hub
+  MIT License â€¢ 2026 Production-Grade Engineering Hub
 </div>
