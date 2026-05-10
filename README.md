@@ -1,7 +1,8 @@
 <div align="center">
   <img src="https://nestjs.com/img/logo-small.svg" width="120" alt="NestJS Logo" />
-  <h1>🚀 E-Commerce Microservices Platform</h1>
-  <p><b>A production-grade, high-scale distributed systems reference architecture.</b></p>
+  <h1>🚀 Skyline Shop: Production-Grade Microservices</h1>
+  <p><b>An elite-level, high-scale distributed systems reference architecture.</b></p>
+  <p><i>The definitive blueprint for microservices with NestJS, gRPC, and NATS JetStream.</i></p>
 
 [![NestJS](https://img.shields.io/badge/Framework-NestJS-E0234E?style=for-the-badge&logo=nestjs)](https://nestjs.com/)
 [![PostgreSQL](https://img.shields.io/badge/Database-PostgreSQL-336791?style=for-the-badge&logo=postgresql)](https://www.postgresql.org/)
@@ -9,7 +10,18 @@
 [![Redis](https://img.shields.io/badge/Cache-Redis-DC382D?style=for-the-badge&logo=redis)](https://redis.io/)
 [![Docker](https://img.shields.io/badge/Infrastructure-Docker-2496ED?style=for-the-badge&logo=docker)](https://www.docker.com/)
 
+---
+
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](http://makeapullrequest.com)
+[![First Timers Only](https://img.shields.io/badge/first--timers--only-friendly-blue.svg?style=flat-square)](http://www.firsttimersonly.com/)
+[![Hacktoberfest](https://img.shields.io/badge/Hacktoberfest-2026-orange?style=flat-square&logo=hacktoberfest)](https://hacktoberfest.com/)
+[![Contributor Covenant](https://img.shields.io/badge/Contributor%20Covenant-v2.1%20adopted-ff69b4.svg?style=flat-square)](CODE_OF_CONDUCT.md)
+
 </div>
+
+---
+
+> **Keywords:** Microservices, Distributed Systems, NestJS architecture, gRPC, NATS JetStream, Event-Driven Architecture, PostgreSQL Sharding, Redis Caching, Saga Pattern, CQRS, Scalable E-commerce.
 
 ---
 
@@ -35,8 +47,8 @@ This platform is an elite-level implementation of a modern e-commerce backend, d
 | **🛡️ Reliability**    | Scaling & Resiliency       | [Scaling & Sharding](./docs/infrastructure/scaling-and-sharding.md) • [Resiliency Patterns](./docs/architecture/resiliency-patterns.md) • [Testing](./docs/architecture/testing-strategy.md) |
 | **🔐 Security**       | Protection & Identity      | [Security Architecture](./docs/architecture/security-architecture.md) • [Auth Flow](./docs/flows/authentication-flow.md) • [Security Policy](./SECURITY.md)                                  |
 | **🧩 Services**       | Domain Implementation      | [API Gateway](./apps/api-gateway/README.md) • [Order Service](./apps/order-service/README.md) • [Full Catalog](./docs/services/README.md)                                                    |
-| **📈 Observability**  | Metrics & Monitoring       | [Monitoring Strategy](./docs/infrastructure/observability.md) • [Glossary](./GLOSSARY.md)                                                                                                    |
-| **🛠️ Infrastructure** | Tooling & DevOps           | [Docker Setup](./docs/infrastructure/docker-setup.md) • [Nginx Proxy](./docs/infrastructure/nginx.md) • [Roadmap](./ROADMAP.md)                                                              |
+| **📈 Observability**  | Metrics & Monitoring       | [Monitoring Strategy](./docs/infrastructure/observability.md) • [Glossary](./docs/GLOSSARY.md)                                                                                                    |
+| **🛠️ Infrastructure** | Tooling & DevOps           | [Docker Setup](./docs/infrastructure/docker-setup.md) • [Nginx Proxy](./docs/infrastructure/nginx.md) • [Roadmap](./docs/ROADMAP.md)                                                              |
 
 ---
 
@@ -152,6 +164,21 @@ We document the **WHY** behind every major architectural choice to maintain engi
 
 ---
 
+---
+
+## 🤝 Community & Contribution
+
+We believe in the power of open source! This project is a living laboratory for distributed systems engineering.
+
+- **Found a bug?** Open an [Issue](https://github.com/RajdeepDevelopment/skyline-shop-commerceos-microservices/issues).
+- **Want to learn?** Read our [Engineering Wiki](./docs/PROJECT_WIKI.md) and [ADRs](./docs/adr/).
+- **Ready to code?** Check out our [Contributing Guide](./CONTRIBUTING.md) and look for `good-first-issue` labels.
+
+### ✨ Special Thanks to Contributors
+*Join us and get your name on the list!*
+
+---
+
 <div align="center">
-  MIT License • 2026 Production-Grade Engineering Hub
+  MIT License • 2026 Production-Grade Engineering Hub • <a href="./CODE_OF_CONDUCT.md">Code of Conduct</a>
 </div>
