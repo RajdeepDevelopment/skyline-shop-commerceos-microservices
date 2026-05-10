@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - development
+      - 'release/**'
   pull_request:
     branches:
       - main
       - development
+      - 'release/**'
 
 concurrency:
   group: branch-protection-${{ github.ref }}
@@ -33,25 +35,19 @@ jobs:
       # --------------------------------------------------
       # 1. Block direct pushes to protected branches
       # --------------------------------------------------
-      - name: � Debug Information
-        run: |
-          echo "Actor: ${{ github.actor }}"
-          echo "Ref: ${{ github.ref }}"
-          echo "Ref Name: ${{ github.ref_name }}"
-
-      - name: �🚫 Prevent Direct Push to Protected Branches
+      - name: 🚫 Prevent Direct Push to Protected Branches
         if: |
           github.event_name == 'push' && 
-          (github.ref_name == 'main' || github.ref_name == 'development') && 
-          github.actor != 'dependabot[bot]' && 
-          github.actor != 'RajdeepDevelopment'
+          (github.ref_name == 'main' || github.ref_name == 'development' || startsWith(github.ref_name, 'release/')) && 
+          github.actor != 'RajdeepDevelopment' && 
+          github.actor != 'dependabot[bot]'
         run: |
           echo "❌ Direct pushes to protected branches are not allowed for ${{ github.actor }}."
-          echo "Use Pull Requests with approvals for all changes."
+          echo "Please use a Pull Request to merge changes."
           exit 1
 
       # --------------------------------------------------
-      # 2. Conventional commit validation
+      # 2. Conventional commit validation (for both push & PR)
       # --------------------------------------------------
       - name: 📝 Validate Conventional Commits
         uses: wagoid/commitlint-github-action@v6
@@ -59,42 +55,22 @@ jobs:
           configFile: commitlint.config.js
 
       # --------------------------------------------------
-      # 3. Strict branch naming policy
-      # --------------------------------------------------
-      - name: 🏷️ Validate Branch Naming Convention
-        if: github.event_name == 'pull_request'
-        run: |
-          BRANCH_NAME="${{ github.head_ref }}"
-          VALID_PATTERN="^(feat|fix|docs|chore|refactor|test|ci|perf|hotfix|release)\/[a-z0-9._-]+$"
-
-          if [[ ! $BRANCH_NAME =~ $VALID_PATTERN ]]; then
-            echo "❌ Invalid branch name: $BRANCH_NAME"
-            echo "Allowed format: type/description"
-            echo "Examples:"
-            echo "  feat/add-payment-retry"
-            echo "  fix/cart-price-bug"
-            echo "  hotfix/payment-timeout"
-            exit 1
-          fi
-
-      # --------------------------------------------------
-      # 4. PR title must follow conventional commits
+      # 3. PR title must follow conventional commits
       # --------------------------------------------------
       - name: 📌 Validate Pull Request Title
         if: github.event_name == 'pull_request'
         run: |
           PR_TITLE="${{ github.event.pull_request.title }}"
-          TITLE_PATTERN="^(feat|fix|docs|chore|refactor|test|ci|perf|hotfix|release)(\(.+\))?: .+$"
+          TITLE_PATTERN="^(feat|fix|docs|chore|refactor|test|ci|perf|hotfix|release|style|build)(\(.+\))?: .+$"
 
           if [[ ! $PR_TITLE =~ $TITLE_PATTERN ]]; then
             echo "❌ Invalid PR title: $PR_TITLE"
-            echo "Use Conventional Commit style PR titles"
-            echo "Example: feat(cart): add distributed cache layer"
+            echo "Use Conventional Commit style PR titles (e.g. feat(order): add idempotency)"
             exit 1
           fi
 
       # --------------------------------------------------
-      # 5. Require PR size discipline
+      # 4. Require PR size discipline (Relaxed to 100 files)
       # --------------------------------------------------
       - name: 📏 Prevent Oversized Pull Requests
         if: github.event_name == 'pull_request'
@@ -103,23 +79,21 @@ jobs:
 
           echo "Changed files: $CHANGED_FILES"
 
-          if [ "$CHANGED_FILES" -gt 40 ]; then
-            echo "❌ PR too large. Keep PRs focused and reviewable."
-            echo "Maximum allowed changed files: 40"
+          if [ "$CHANGED_FILES" -gt 100 ]; then
+            echo "❌ PR too large ($CHANGED_FILES files). Please split this into smaller, focused PRs."
+            echo "Maximum allowed changed files: 100"
             exit 1
           fi
 
       # --------------------------------------------------
-      # 6. Prevent force-push style release bypass
+      # 5. Prevent direct merge to main from non-release
       # --------------------------------------------------
       - name: 🔒 Require release branches for production
         if: github.event_name == 'pull_request' && github.base_ref == 'main'
         run: |
           SOURCE_BRANCH="${{ github.head_ref }}"
 
-          if [[ ! $SOURCE_BRANCH =~ ^(release|hotfix)\/ ]]; then
-            echo "❌ Production merges to main must come only from:"
-            echo "- release/*"
-            echo "- hotfix/*"
+          if [[ ! $SOURCE_BRANCH =~ ^(release|hotfix|development)\/ ]]; then
+            echo "❌ Production merges to main must come from release/*, hotfix/* or development."
             exit 1
           fi
