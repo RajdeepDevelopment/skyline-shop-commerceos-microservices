@@ -1,0 +1,115 @@
+name: 🛡️ Enterprise Branch Protection
+
+on:
+  push:
+    branches:
+      - main
+      - development
+  pull_request:
+    branches:
+      - main
+      - development
+
+concurrency:
+  group: branch-protection-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: write
+
+jobs:
+  governance:
+    name: Branch Governance Enforcement
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # --------------------------------------------------
+      # 1. Block direct pushes to protected branches
+      # --------------------------------------------------
+      - name: 🚫 Prevent Direct Push to Protected Branches
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development') && github.actor != 'dependabot[bot]'
+        run: |
+          echo "❌ Direct pushes to protected branches are not allowed."
+          echo "Use Pull Requests with approvals for all changes."
+          exit 1
+
+      # --------------------------------------------------
+      # 2. Conventional commit validation
+      # --------------------------------------------------
+      - name: 📝 Validate Conventional Commits
+        uses: wagoid/commitlint-github-action@v6
+        with:
+          configFile: commitlint.config.js
+
+      # --------------------------------------------------
+      # 3. Strict branch naming policy
+      # --------------------------------------------------
+      - name: 🏷️ Validate Branch Naming Convention
+        if: github.event_name == 'pull_request'
+        run: |
+          BRANCH_NAME="${{ github.head_ref }}"
+          VALID_PATTERN="^(feat|fix|docs|chore|refactor|test|ci|perf|hotfix|release)\/[a-z0-9._-]+$"
+
+          if [[ ! $BRANCH_NAME =~ $VALID_PATTERN ]]; then
+            echo "❌ Invalid branch name: $BRANCH_NAME"
+            echo "Allowed format: type/description"
+            echo "Examples:"
+            echo "  feat/add-payment-retry"
+            echo "  fix/cart-price-bug"
+            echo "  hotfix/payment-timeout"
+            exit 1
+          fi
+
+      # --------------------------------------------------
+      # 4. PR title must follow conventional commits
+      # --------------------------------------------------
+      - name: 📌 Validate Pull Request Title
+        if: github.event_name == 'pull_request'
+        run: |
+          PR_TITLE="${{ github.event.pull_request.title }}"
+          TITLE_PATTERN="^(feat|fix|docs|chore|refactor|test|ci|perf|hotfix|release)(\(.+\))?: .+$"
+
+          if [[ ! $PR_TITLE =~ $TITLE_PATTERN ]]; then
+            echo "❌ Invalid PR title: $PR_TITLE"
+            echo "Use Conventional Commit style PR titles"
+            echo "Example: feat(cart): add distributed cache layer"
+            exit 1
+          fi
+
+      # --------------------------------------------------
+      # 5. Require PR size discipline
+      # --------------------------------------------------
+      - name: 📏 Prevent Oversized Pull Requests
+        if: github.event_name == 'pull_request'
+        run: |
+          CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | wc -l)
+
+          echo "Changed files: $CHANGED_FILES"
+
+          if [ "$CHANGED_FILES" -gt 40 ]; then
+            echo "❌ PR too large. Keep PRs focused and reviewable."
+            echo "Maximum allowed changed files: 40"
+            exit 1
+          fi
+
+      # --------------------------------------------------
+      # 6. Prevent force-push style release bypass
+      # --------------------------------------------------
+      - name: 🔒 Require release branches for production
+        if: github.event_name == 'pull_request' && github.base_ref == 'main'
+        run: |
+          SOURCE_BRANCH="${{ github.head_ref }}"
+
+          if [[ ! $SOURCE_BRANCH =~ ^(release|hotfix)\/ ]]; then
+            echo "❌ Production merges to main must come only from:"
+            echo "- release/*"
+            echo "- hotfix/*"
+            exit 1
+          fi

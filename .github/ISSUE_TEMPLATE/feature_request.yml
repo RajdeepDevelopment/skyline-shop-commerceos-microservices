@@ -1,28 +1,31 @@
-name: 🚀 Feature Request
-description: Suggest an idea for this platform
-labels: ['enhancement']
+name: ✨ Feature Request
+description: Propose a new feature or architectural pattern.
+labels: [feature, discussion]
 body:
-  - type: textarea
-    id: vision
+  - type: markdown
     attributes:
-      label: Problem Statement
-      description: Is your feature request related to a problem? Please describe.
+      value: |
+        We are always looking for new distributed systems patterns to demonstrate!
+  - type: textarea
+    id: goal
+    attributes:
+      label: Problem Statement / Learning Goal
+      description: What problem does this solve, or what engineering pattern does it teach?
     validations:
       required: true
   - type: textarea
-    id: solution
+    id: proposal
     attributes:
       label: Proposed Solution
-      description: Describe the solution you'd like to see implemented.
+      description: Describe your idea for the implementation (e.g., adding a specific gRPC interceptor or a new sharding strategy).
     validations:
       required: true
-  - type: textarea
-    id: alternatives
+  - type: checkboxes
+    id: type
     attributes:
-      label: Alternatives Considered
-      description: Any alternative solutions or features you've considered.
-  - type: textarea
-    id: context
-    attributes:
-      label: Additional Context
-      description: Any other context, screenshots, or architectural diagrams.
+      label: This is related to:
+      options:
+        - label: Distributed Systems Patterns
+        - label: Security & Identity
+        - label: Scaling & Performance
+        - label: Observability

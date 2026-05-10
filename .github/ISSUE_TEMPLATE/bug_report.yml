@@ -1,6 +1,6 @@
-name: 🐛 Bug Report
-description: Report a bug to help us improve
-labels: ['bug']
+name: 🐞 Bug Report
+description: Report a bug to help us improve the platform.
+labels: [bug, triage]
 body:
   - type: markdown
     attributes:
@@ -16,28 +16,16 @@ body:
   - type: textarea
     id: reproduction
     attributes:
-      label: Reproduction Steps
-      description: How do we reproduce this?
+      label: Steps to Reproduce
+      description: How can we reproduce this issue?
       placeholder: |
-        1. Start the platform using `./setup.sh`
-        2. Call endpoint X
-        3. See error
+        1. Start docker-compose...
+        2. Run 'pnpm run dev auth-service'...
+        3. Send request to...
     validations:
       required: true
-  - type: textarea
-    id: expected
-    attributes:
-      label: Expected Behavior
-      description: What did you expect to happen?
-    validations:
-      required: true
-  - type: input
-    id: version
-    attributes:
-      label: Version
-      description: What version of the platform are you using?
   - type: textarea
     id: logs
     attributes:
       label: Relevant Logs
-      description: Please paste any relevant logs from the microservice or Docker.
+      description: Please provide any relevant logs or error messages.

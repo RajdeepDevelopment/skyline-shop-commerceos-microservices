@@ -1,6 +1,15 @@
 # 🤝 Contributing to E-Commerce Microservices Platform
 
-Thank you for your interest in contributing! As a production-grade engineering reference, we maintain high standards for code quality, architectural consistency, and documentation.
+Thank you for your interest in contributing! This project is designed not just as a tool, but as a **Learning Laboratory** for elite-level distributed systems engineering. Whether you are a senior architect or a student, your contributions are valued.
+
+---
+
+## 🎓 Learning with Us
+
+If you are here to learn:
+- **Analyze the Patterns**: Look into how we handle the [Saga Choreography](./PROJECT_WIKI.md#🛒-distributed-checkout-saga-choreography).
+- **Read the ADRs**: Every major decision is documented in the [ADR Directory](./docs/adr/).
+- **Ask Questions**: Feel free to open an issue to ask "Why was this done this way?"—we love technical discussions!
 
 ---
 

@@ -1,9 +1,25 @@
 # Global owners
 * @core-backend-team
 
+# Core Architecture & Standards
+/docs/adr/ @core-architects
+/PROJECT_WIKI.md @core-backend-team
+/GIT_STANDARDS.md @devops-team
+/.github/ @devops-team
+
 # Domain owners
 /apps/auth-service/ @auth-team
 /apps/order-service/ @order-team
 /apps/payment-service/ @payment-team
+/apps/product-service/ @order-team
+/apps/inventory-service/ @order-team
+
+# Shared Units
 /libs/ @platform-team
+/proto/ @platform-team
+
+# Infrastructure & DevOps
 /infrastructure/ @devops-team
+/docker-compose.yml @devops-team
+/package.json @devops-team
+/pnpm-workspace.yaml @devops-team

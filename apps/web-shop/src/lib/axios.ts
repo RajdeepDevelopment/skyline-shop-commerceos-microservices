@@ -65,7 +65,7 @@ const createAxiosInstance = (baseURL: string): AxiosInstance => {
       if (!error.response) {
         error.message = 'Network error. Please check your connection.';
       }
-      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
+
       return Promise.reject(error);
     },
   );
