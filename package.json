@@ -1,6 +1,6 @@
 {
   "name": "ecommerce-microservices",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "",
   "author": "Rajdeep Sadhu",
   "private": true,
@@ -23,7 +23,10 @@
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./apps/ecommerce-microservices/test/jest-e2e.json",
-    "prepare": "husky"
+    "prepare": "husky",
+    "release": "standard-version",
+    "release:minor": "standard-version --release-as minor",
+    "release:major": "standard-version --release-as major"
   },
   "dependencies": {
     "@grpc/grpc-js": "^1.14.3",
@@ -89,6 +92,7 @@
     "prettier": "^3.4.2",
     "prisma": "^7.8.0",
     "source-map-support": "^0.5.21",
+    "standard-version": "^9.5.0",
     "supertest": "^7.0.0",
     "testcontainers": "^11.14.0",
     "ts-jest": "^29.2.5",
