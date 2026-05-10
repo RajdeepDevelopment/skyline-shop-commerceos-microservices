@@ -1,8 +1,8 @@
-# 📈 Scaling & Database Strategy
+# ðŸ“ˆ Scaling & Database Strategy
 
 This document explains how the E-Commerce Microservices Platform handles high-volume traffic and massive data growth through advanced database patterns.
 
-## 🏗️ Scaling Overview
+## ðŸ—ï¸ Scaling Overview
 
 | Pattern                  | Focus             | Implementation                                                                  |
 | :----------------------- | :---------------- | :------------------------------------------------------------------------------ |
@@ -13,7 +13,7 @@ This document explains how the E-Commerce Microservices Platform handles high-vo
 
 ---
 
-## 🧩 Database Sharding (Horizontal Partitioning)
+## ðŸ§© Database Sharding (Horizontal Partitioning)
 
 In the `product-service`, we implement **Application-Level Sharding** to distribute millions of products across multiple database instances.
 
@@ -39,7 +39,7 @@ private getShard(key: string): PrismaClient {
 
 ---
 
-## ⚡ Read/Write Splitting (CQRS Lite)
+## âš¡ Read/Write Splitting (CQRS Lite)
 
 To optimize performance, we separate heavy write operations from high-frequency read operations.
 
@@ -61,7 +61,7 @@ sequenceDiagram
 
 ---
 
-## 🌊 Scaling Flowchart
+## ðŸŒŠ Scaling Flowchart
 
 The following diagram illustrates how the system scales from the Ingress layer down to the Shards:
 
@@ -89,7 +89,7 @@ graph TD
 
 ---
 
-## 🛠️ Infrastructure Configuration (`docker-compose.yml`)
+## ðŸ› ï¸ Infrastructure Configuration (`docker-compose.yml`)
 
 We define multiple database containers to simulate a sharded environment:
 
@@ -99,7 +99,7 @@ We define multiple database containers to simulate a sharded environment:
 
 ---
 
-## 📈 Scalability Checklist
+## ðŸ“ˆ Scalability Checklist
 
 - [x] Stateless application logic for horizontal container scaling.
 - [x] Application-level sharding logic in high-growth services.
@@ -108,4 +108,4 @@ We define multiple database containers to simulate a sharded environment:
 
 ---
 
-[⬅️ Back to Architecture Index](../architecture/README.md)
+[â¬…ï¸ Back to Architecture Index](../architecture/README.md)

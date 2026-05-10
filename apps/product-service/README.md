@@ -1,21 +1,21 @@
-# 📦 Product Service
+# ðŸ“¦ Product Service
 
-## 📝 Overview
+## ðŸ“ Overview
 
 The Product Service manages the catalog, categories, and real-time search capabilities.
 
-## 🗺️ System Design & Logic
+## ðŸ—ºï¸ System Design & Logic
 
 - **Read-Heavy**: Optimized for high-frequency reads using a Read-Through caching strategy with Redis.
 - **Search**: Implements full-text search capabilities.
 - **Consistency**: Uses event-driven updates to notify Inventory Service of new products.
 
-## 🔗 Inner Documentation
+## ðŸ”— Inner Documentation
 
 - **[Architecture & Flow](./docs/architecture.md)** - Catalog management and caching.
 - **[Database Design](./docs/database-design.md)** - Product/Category schemas.
 
-## 🔄 Core Flow: Product Retrieval (Cache Aside)
+## ðŸ”„ Core Flow: Product Retrieval (Cache Aside)
 
 ```mermaid
 graph LR
@@ -28,4 +28,4 @@ graph LR
 
 ---
 
-[⬅️ Back to Platform Services](../../docs/services/README.md)
+[â¬…ï¸ Back to Platform Services](../../docs/services/README.md)

@@ -1,10 +1,10 @@
-# 🗄️ Database Library (`libs/database`)
+# ðŸ—„ï¸ Database Library (`libs/database`)
 
 The Database Library provides a centralized, type-safe abstraction over **PostgreSQL** using **Prisma ORM**, specifically designed for a multi-service architecture.
 
 ---
 
-## 🏗️ Core Responsibilities
+## ðŸ—ï¸ Core Responsibilities
 
 - **Connection Management**: Handles connection pooling and lifecycle for Prisma clients.
 - **Service Isolation**: Provides patterns to ensure services only access their own schema/shard.
@@ -13,7 +13,7 @@ The Database Library provides a centralized, type-safe abstraction over **Postgr
 
 ---
 
-## 🗺️ Sharding Architecture
+## ðŸ—ºï¸ Sharding Architecture
 
 As documented in the [Scaling & Sharding Strategy](../infrastructure/scaling-and-sharding.md), this library supports multi-shard configurations.
 
@@ -35,7 +35,7 @@ graph TD
 
 ---
 
-## ⚡ Performance Features
+## âš¡ Performance Features
 
 1.  **Read Replicas**: Support for routing `find` operations to read-only replicas.
 2.  **Connection Pooling**: Optimized for high-concurrency NestJS environments.
@@ -43,7 +43,7 @@ graph TD
 
 ---
 
-## 🛠️ Usage Example
+## ðŸ› ï¸ Usage Example
 
 ```typescript
 @Injectable()
@@ -58,4 +58,4 @@ export class OrderRepository {
 
 ---
 
-[⬅️ Back to Home](../../README.md)
+[â¬…ï¸ Back to Home](../../README.md)

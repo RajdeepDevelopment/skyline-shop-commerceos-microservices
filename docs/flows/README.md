@@ -1,8 +1,8 @@
-# 🌊 System Flows
+# ðŸŒŠ System Flows
 
 Visualizing how data and events move through the system for core business processes.
 
-## 🔄 Business Processes
+## ðŸ”„ Business Processes
 
 - **[Authentication Flow](./authentication-flow.md)** - Login, Token Issuance, and Refresh.
 - **[Checkout Flow](./checkout-flow.md)** - From Cart to Order Placement.
@@ -13,4 +13,4 @@ Visualizing how data and events move through the system for core business proces
 
 ---
 
-[⬅️ Back to Home](../../README.md)
+[â¬…ï¸ Back to Home](../../README.md)

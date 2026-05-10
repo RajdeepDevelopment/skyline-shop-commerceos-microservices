@@ -1,10 +1,10 @@
-# 📚 Common Library (`libs/common`)
+# ðŸ“š Common Library (`libs/common`)
 
 The Common Library is the "Standard Library" of our platform, containing shared utilities, types, and NestJS decorators used by all microservices.
 
 ---
 
-## 🏗️ Core Responsibilities
+## ðŸ—ï¸ Core Responsibilities
 
 - **Consistency**: Ensures standardized error handling, request logging, and health checks across the platform.
 - **DRY (Don't Repeat Yourself)**: Centralizes cross-cutting concerns like JWT guards and correlation ID middleware.
@@ -12,7 +12,7 @@ The Common Library is the "Standard Library" of our platform, containing shared 
 
 ---
 
-## 🗺️ Library Composition
+## ðŸ—ºï¸ Library Composition
 
 | Module         | Purpose                          | Example                                               |
 | :------------- | :------------------------------- | :---------------------------------------------------- |
@@ -25,7 +25,7 @@ The Common Library is the "Standard Library" of our platform, containing shared 
 
 ---
 
-## 🔄 Global Request Lifecycle
+## ðŸ”„ Global Request Lifecycle
 
 Every request entering the platform via the API Gateway passes through these common layers:
 
@@ -41,7 +41,7 @@ graph TD
 
 ---
 
-## 🛠️ Usage Example
+## ðŸ› ï¸ Usage Example
 
 ```typescript
 // Applying a shared guard and correlation ID context
@@ -57,4 +57,4 @@ export class OrderController {
 
 ---
 
-[⬅️ Back to Home](../../README.md)
+[â¬…ï¸ Back to Home](../../README.md)

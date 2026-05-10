@@ -1,8 +1,8 @@
-# 🛠️ Platform Scripts & Tooling
+# ðŸ› ï¸ Platform Scripts & Tooling
 
 This section documents the utility scripts and extra tools used to manage, secure, and bootstrap the E-Commerce Microservices Platform.
 
-## 🗝️ PGP Key Generation (`generate-pgp-keys.js`)
+## ðŸ—ï¸ PGP Key Generation (`generate-pgp-keys.js`)
 
 ### Why do we use this?
 
@@ -19,7 +19,7 @@ In a zero-trust architecture, sensitive payloads (like payment details or privat
 
 ---
 
-## 🌱 Product Seeding (`scripts/seed-products.ts`)
+## ðŸŒ± Product Seeding (`scripts/seed-products.ts`)
 
 ### Why do we use this?
 
@@ -31,7 +31,7 @@ A microservices system is difficult to visualize without data. This script provi
 
 ---
 
-## 🏗️ Automated Setup (`setup.sh`)
+## ðŸ—ï¸ Automated Setup (`setup.sh`)
 
 ### Why do we use this?
 
@@ -44,7 +44,7 @@ Microservices are complex to bootstrap. This script automates the developer expe
 
 ---
 
-## 🌊 Tooling Workflow
+## ðŸŒŠ Tooling Workflow
 
 ```mermaid
 graph TD
@@ -58,4 +58,4 @@ graph TD
 
 ---
 
-[⬅️ Back to Home](../../README.md)
+[â¬…ï¸ Back to Home](../../README.md)

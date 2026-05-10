@@ -1,8 +1,8 @@
-# 🌊 Checkout Flow
+# ðŸŒŠ Checkout Flow
 
 The checkout flow is a critical multi-service orchestration that transforms a shopping cart into a confirmed order.
 
-## 🔄 Sequence Diagram
+## ðŸ”„ Sequence Diagram
 
 ```mermaid
 sequenceDiagram
@@ -43,7 +43,7 @@ sequenceDiagram
     end
 ```
 
-## 🛠️ Services Involved
+## ðŸ› ï¸ Services Involved
 
 1.  **[API Gateway](../services/api-gateway.md)**: Entry point and orchestrator.
 2.  **[Cart Service](../services/cart-service.md)**: Provides the source of truth for items being purchased.
@@ -54,4 +54,4 @@ sequenceDiagram
 
 ---
 
-[🔗 View Order Processing Flow](./order-processing-flow.md) | [⬅️ Back to Flows Index](./README.md)
+[ðŸ”— View Order Processing Flow](./order-processing-flow.md) | [â¬…ï¸ Back to Flows Index](./README.md)

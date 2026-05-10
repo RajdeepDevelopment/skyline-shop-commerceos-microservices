@@ -1,8 +1,8 @@
-# 🏗️ Infrastructure Architecture
+# ðŸ—ï¸ Infrastructure Architecture
 
 This section documents the foundational components that power the E-Commerce Microservices Platform.
 
-## 📖 Key Components
+## ðŸ“– Key Components
 
 - **[Docker Setup](./docker-setup.md)** - Containerization and orchestration strategy.
 - **[Nginx Reverse Proxy](./nginx.md)** - Ingress management and load balancing.
@@ -15,7 +15,7 @@ This section documents the foundational components that power the E-Commerce Mic
 
 ---
 
-## 🌊 Infrastructure Flow
+## ðŸŒŠ Infrastructure Flow
 
 The following diagram illustrates how infrastructure components interact to handle a client request:
 
@@ -44,4 +44,4 @@ graph TD
 
 ---
 
-[⬅️ Back to Home](../../README.md)
+[â¬…ï¸ Back to Home](../../README.md)

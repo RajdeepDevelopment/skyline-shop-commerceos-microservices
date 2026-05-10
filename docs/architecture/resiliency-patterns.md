@@ -1,8 +1,8 @@
-# 🚀 Resiliency Patterns
+# ðŸš€ Resiliency Patterns
 
 To ensure the platform remains stable under load or partial failures, we implement several production-grade resiliency patterns.
 
-## 🛡️ Core Patterns
+## ðŸ›¡ï¸ Core Patterns
 
 ### 1. Circuit Breaker
 
@@ -33,4 +33,4 @@ Ensures that messages that cannot be processed by NATS after multiple retries ar
 
 ---
 
-[⬅️ Back to Architecture Index](./README.md)
+[â¬…ï¸ Back to Architecture Index](./README.md)

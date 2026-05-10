@@ -1,4 +1,4 @@
-# 📈 Observability & Monitoring Strategy
+# ðŸ“ˆ Observability & Monitoring Strategy
 
 The E-Commerce Microservices Platform implements a comprehensive observability stack based on the **Three Pillars of Observability**: Metrics, Logging, and Tracing.
 
@@ -10,7 +10,7 @@ The E-Commerce Microservices Platform implements a comprehensive observability s
 
 ---
 
-## 📊 1. Metrics (Prometheus & Grafana)
+## ðŸ“Š 1. Metrics (Prometheus & Grafana)
 
 We collect real-time telemetry from all microservices to monitor system health and performance.
 
@@ -43,7 +43,7 @@ graph LR
 
 ---
 
-## 📝 2. Structured Logging
+## ðŸ“ 2. Structured Logging
 
 We use a unified logging strategy across all services to enable efficient debugging and log aggregation.
 
@@ -68,7 +68,7 @@ We use a unified logging strategy across all services to enable efficient debugg
 
 ---
 
-## 🔍 3. Distributed Tracing (Roadmap)
+## ðŸ” 3. Distributed Tracing (Roadmap)
 
 To visualize request lifecycles across service boundaries, we are integrating **OpenTelemetry** with **Jaeger**.
 
@@ -93,11 +93,11 @@ sequenceDiagram
 
 ---
 
-## 🛠️ Dashboard Configuration
+## ðŸ› ï¸ Dashboard Configuration
 
 - **Grafana**: Accessible at `http://localhost:3001` (in dev).
 - **Dashboards**: Pre-configured dashboards for NestJS internals, NATS throughput, and Database performance.
 
 ---
 
-[⬅️ Back to Home](../../README.md)
+[â¬…ï¸ Back to Home](../../README.md)

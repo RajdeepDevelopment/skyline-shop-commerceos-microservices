@@ -1,8 +1,8 @@
-# 🧩 Service Catalog
+# ðŸ§© Service Catalog
 
 Each service in this platform is a self-contained domain with its own responsibilities, data, and logic.
 
-## 🚀 Core Services
+## ðŸš€ Core Services
 
 - **[API Gateway](../../apps/api-gateway/README.md)** - The central entry point and reverse proxy.
 - **[Auth Service](../../apps/auth-service/README.md)** - Identity management and authentication.
@@ -17,4 +17,4 @@ Each service in this platform is a self-contained domain with its own responsibi
 
 ---
 
-[⬅️ Back to Home](../../README.md)
+[â¬…ï¸ Back to Home](../../README.md)

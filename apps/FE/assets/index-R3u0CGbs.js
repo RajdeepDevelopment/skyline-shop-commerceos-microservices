@@ -20470,22 +20470,20 @@ const Hj = (e, t) => (Td(e) ? new $j(t) : new zj(t, { allowProjection: e !== P.F
                           children:
                             (a = r.images) == null
                               ? void 0
-                              : a
-                                  .slice(0, 4)
-                                  .map((l, u) =>
-                                    f.jsx(
-                                      'div',
-                                      {
-                                        className:
-                                          'glass rounded-xl overflow-hidden aspect-square cursor-pointer hover:border-primary-500/50 transition-all border border-transparent',
-                                        children: f.jsx('img', {
-                                          src: l,
-                                          className: 'w-full h-full object-cover',
-                                        }),
-                                      },
-                                      u,
-                                    ),
+                              : a.slice(0, 4).map((l, u) =>
+                                  f.jsx(
+                                    'div',
+                                    {
+                                      className:
+                                        'glass rounded-xl overflow-hidden aspect-square cursor-pointer hover:border-primary-500/50 transition-all border border-transparent',
+                                      children: f.jsx('img', {
+                                        src: l,
+                                        className: 'w-full h-full object-cover',
+                                      }),
+                                    },
+                                    u,
                                   ),
+                                ),
                         }),
                       ],
                     }),

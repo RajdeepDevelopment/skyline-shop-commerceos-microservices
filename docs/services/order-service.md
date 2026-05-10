@@ -1,4 +1,4 @@
-# 🛍️ Order Service
+# ðŸ›ï¸ Order Service
 
 ## Purpose
 
@@ -18,7 +18,7 @@ The Order Service is the primary orchestrator of the commerce lifecycle, managin
 - **Database**: PostgreSQL (Prisma).
 - **Communication**: gRPC (Internal Sync) & NATS (External Async).
 
-## 🗺️ Request Flow
+## ðŸ—ºï¸ Request Flow
 
 ```mermaid
 sequenceDiagram
@@ -35,7 +35,7 @@ sequenceDiagram
     O->>O: Transition to PAID
 ```
 
-## 📦 Folder Structure
+## ðŸ“¦ Folder Structure
 
 - `src/application`: Use cases and command handlers.
 - `src/domain`: Entities, value objects, and repository interfaces.
@@ -43,4 +43,4 @@ sequenceDiagram
 
 ---
 
-[🔗 View Checkout Flow](../flows/checkout-flow.md) | [🏗️ View CQRS Pattern](../architecture/cqrs-pattern.md) | [⬅️ Back to Service Catalog](./README.md)
+[ðŸ”— View Checkout Flow](../flows/checkout-flow.md) | [ðŸ—ï¸ View CQRS Pattern](../architecture/cqrs-pattern.md) | [â¬…ï¸ Back to Service Catalog](./README.md)

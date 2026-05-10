@@ -1,8 +1,8 @@
-# 📚 Shared Libraries
+# ðŸ“š Shared Libraries
 
 To ensure consistency and DRY (Don't Repeat Yourself) principles, common logic is abstracted into shared libraries.
 
-## 🛠️ Library List
+## ðŸ› ï¸ Library List
 
 - **[Common Lib](./common-lib.md)** - Shared types, decorators, and utilities.
 - **[Auth Lib](./auth-lib.md)** - Shared security guards and JWT logic.
@@ -15,4 +15,4 @@ To ensure consistency and DRY (Don't Repeat Yourself) principles, common logic i
 
 ---
 
-[⬅️ Back to Home](../../README.md)
+[â¬…ï¸ Back to Home](../../README.md)

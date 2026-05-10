@@ -1,15 +1,15 @@
-# 🌌 Advanced: Resilience & High Scale
+# ðŸŒŒ Advanced: Resilience & High Scale
 
 The advanced phase focuses on making the platform highly performant and stable under load.
 
-## 🎯 Learning Objectives
+## ðŸŽ¯ Learning Objectives
 
 1.  **CQRS (Command Query Responsibility Segregation)**: Separating Write (Orders) from Read (Analytics/History).
 2.  **Resiliency Patterns**: Implementing Circuit Breakers and Retries (see `resiliency-patterns.md`).
 3.  **Security Engineering**: Zero-Trust architecture and PGP payload signing.
 4.  **Database Sharding & Scaling**: Strategies for handling millions of users.
 
-## 🛡️ Engineering for Failure
+## ðŸ›¡ï¸ Engineering for Failure
 
 In a system this size, things _will_ fail. Advanced engineering is about **graceful degradation**.
 
@@ -19,4 +19,4 @@ We use CQRS to ensure that a surge in users viewing their "Order History" (Queri
 
 ---
 
-[⬅️ Back to Roadmap](./engineering-roadmap.md)
+[â¬…ï¸ Back to Roadmap](./engineering-roadmap.md)

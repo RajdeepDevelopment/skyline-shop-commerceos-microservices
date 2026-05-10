@@ -1,21 +1,21 @@
-# 🔐 Auth Service
+# ðŸ” Auth Service
 
-## 📝 Overview
+## ðŸ“ Overview
 
 The Auth Service is the security anchor of the platform, managing Identity, JWT issuance, and RBAC (Role-Based Access Control).
 
-## 🗺️ System Design & Logic
+## ðŸ—ºï¸ System Design & Logic
 
 - **Identity**: Centralized user credentials store.
 - **Security**: Implements Argon2 for hashing and asymmetric PGP for sensitive payload signing.
 - **Tokens**: Issues short-lived Access Tokens (JWT) and long-lived Refresh Tokens.
 
-## 🔗 Inner Documentation
+## ðŸ”— Inner Documentation
 
 - **[Architecture & Flow](./docs/architecture.md)** - Auth sequences and PGP logic.
 - **[Database Design](./docs/database-design.md)** - User schemas and session tracking.
 
-## 🔄 Core Flow: Login & Token Issuance
+## ðŸ”„ Core Flow: Login & Token Issuance
 
 ```mermaid
 sequenceDiagram
@@ -34,4 +34,4 @@ sequenceDiagram
 
 ---
 
-[⬅️ Back to Platform Services](../../docs/services/README.md)
+[â¬…ï¸ Back to Platform Services](../../docs/services/README.md)

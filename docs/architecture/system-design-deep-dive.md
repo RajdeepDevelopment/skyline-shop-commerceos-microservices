@@ -1,4 +1,4 @@
-# 🏗️ System Design & Architecture
+# ðŸ—ï¸ System Design & Architecture
 
 <div align="center">
   [![Architecture: Microservices](https://img.shields.io/badge/Architecture-Microservices-blue?style=flat-square)](#)
@@ -11,7 +11,7 @@ This document provides a deep-dive into the core engineering principles and arch
 
 ---
 
-## 🏛️ Architectural Philosophy
+## ðŸ›ï¸ Architectural Philosophy
 
 | Principle               | Strategic Intent                                            | Implementation                                                       |
 | :---------------------- | :---------------------------------------------------------- | :------------------------------------------------------------------- |
@@ -22,9 +22,9 @@ This document provides a deep-dive into the core engineering principles and arch
 
 ---
 
-## 🗺️ Core Patterns
+## ðŸ—ºï¸ Core Patterns
 
-### 🔄 Saga Pattern (Distributed Transactions)
+### ðŸ”„ Saga Pattern (Distributed Transactions)
 
 Since we maintain dedicated databases for every service, we use the **Saga Choreography Pattern** to ensure eventual consistency across the platform.
 
@@ -56,7 +56,7 @@ sequenceDiagram
     end
 ```
 
-### ⚡ CQRS (Command Query Responsibility Segregation)
+### âš¡ CQRS (Command Query Responsibility Segregation)
 
 We optimize for asymmetric read/write loads by separating the paths for data modification and data retrieval.
 
@@ -80,7 +80,7 @@ graph LR
 
 ---
 
-## 🛡️ Security-in-Depth
+## ðŸ›¡ï¸ Security-in-Depth
 
 | Security Layer        | Implementation Detail          | Risk Mitigated                            |
 | :-------------------- | :----------------------------- | :---------------------------------------- |
@@ -91,7 +91,7 @@ graph LR
 
 ---
 
-## �️ Resiliency & Reliability
+## ï¿½ï¸ Resiliency & Reliability
 
 ```mermaid
 stateDiagram-v2
@@ -106,7 +106,7 @@ stateDiagram-v2
 
 ---
 
-## 📈 Observability Philosophy
+## ðŸ“ˆ Observability Philosophy
 
 We follow the **Three Pillars of Observability**:
 
@@ -117,5 +117,5 @@ We follow the **Three Pillars of Observability**:
 ---
 
 <div align="center">
-  [⬅️ Back to README](../../README.md) • [Explore Service Catalog](../services/README.md)
+  [â¬…ï¸ Back to README](../../README.md) â€¢ [Explore Service Catalog](../services/README.md)
 </div>

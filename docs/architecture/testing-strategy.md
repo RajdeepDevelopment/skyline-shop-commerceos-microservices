@@ -1,8 +1,8 @@
-# 🧪 Testing Strategy
+# ðŸ§ª Testing Strategy
 
 The E-Commerce Microservices Platform employs a **multi-layered testing strategy** to ensure reliability, performance, and data integrity across the distributed system.
 
-## 🏗️ Testing Pyramid
+## ðŸ—ï¸ Testing Pyramid
 
 ```mermaid
 graph TD
@@ -19,7 +19,7 @@ graph TD
 
 ---
 
-## 🔬 Testing Layers
+## ðŸ”¬ Testing Layers
 
 | Layer                 | Tooling         | Focus                                            | Location                          |
 | :-------------------- | :-------------- | :----------------------------------------------- | :-------------------------------- |
@@ -30,7 +30,7 @@ graph TD
 
 ---
 
-## 🌊 Testing Flows
+## ðŸŒŠ Testing Flows
 
 ### 1. Unit Testing Flow
 
@@ -67,7 +67,7 @@ sequenceDiagram
 
 ---
 
-## 🛠️ Running Tests
+## ðŸ› ï¸ Running Tests
 
 ### All Services
 
@@ -92,7 +92,7 @@ pnpm run test
 
 ---
 
-## 🛡️ Testing Best Practices
+## ðŸ›¡ï¸ Testing Best Practices
 
 - **Shared Mocks**: Common test utilities are shared via `libs/testing`.
 - **Database Cleansing**: Automated scripts reset the test database between runs.
@@ -100,4 +100,4 @@ pnpm run test
 
 ---
 
-[⬅️ Back to Home](../../README.md)
+[â¬…ï¸ Back to Home](../../README.md)
