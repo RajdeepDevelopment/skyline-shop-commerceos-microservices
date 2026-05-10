@@ -1,20 +1,20 @@
-# ðŸ—ï¸ Inventory Service
+# 🏗️ Inventory Service
 
-## ðŸ“ Overview
+## 📝 Overview
 
 Tracks real-time stock levels and handles high-concurrency reservations.
 
-## ðŸ—ºï¸ System Design & Logic
+## 🗺️ System Design & Logic
 
 - **Atomic Reservations**: Uses database transactions to ensure stock doesn't go negative.
 - **Synchronous gRPC**: Provides low-latency stock checks for the Order Service.
 
-## ðŸ”— Inner Documentation
+## 🔗 Inner Documentation
 
 - **[Architecture & gRPC](./docs/architecture.md)** - Internal communication.
 - **[Database Design](./docs/database-design.md)** - Stock and Reservation schemas.
 
-## ðŸ”„ Core Flow: Stock Reservation
+## 🔄 Core Flow: Stock Reservation
 
 ```mermaid
 sequenceDiagram
@@ -30,4 +30,4 @@ sequenceDiagram
 
 ---
 
-[â¬…ï¸ Back to Platform Services](../../docs/services/README.md)
+[⬅️ Back to Platform Services](../../docs/services/README.md)

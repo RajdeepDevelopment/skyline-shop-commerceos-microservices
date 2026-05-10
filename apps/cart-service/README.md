@@ -1,22 +1,22 @@
-# ðŸ›’ Cart Service
+# 🛒 Cart Service
 
-## ðŸ“ Overview
+## 📝 Overview
 
 The Cart Service manages transient user shopping sessions. It is designed for high-speed read/writes using Redis as the primary data store, ensuring low latency during the most active part of the user journey.
 
-## ðŸ—ºï¸ System Design & Logic
+## 🗺️ System Design & Logic
 
 - **Storage Strategy**: Uses Redis for ephemeral data (cart items) with a TTL (Time-To-Live) to automatically clear abandoned carts.
 - **Consistency**: Final cart state is validated against the **Product Service** and **Inventory Service** during the checkout transition.
 - **Concurrency**: Implements optimistic locking or atomic Redis operations to handle rapid item additions/removals.
 
-## ðŸ”— Inner Documentation
+## 🔗 Inner Documentation
 
 - **[Architecture & Flow](./docs/architecture.md)** - Logic and Sequence Diagrams.
 - **[Database Design](./docs/database-design.md)** - Redis schema and key structures.
 - **[API Contracts](./docs/api-contracts.md)** - Request/Response schemas.
 
-## ðŸ”„ Core Flow: Add to Cart
+## 🔄 Core Flow: Add to Cart
 
 ```mermaid
 sequenceDiagram
@@ -38,4 +38,4 @@ sequenceDiagram
 
 ---
 
-[â¬…ï¸ Back to Platform Services](../../docs/services/README.md)
+[⬅️ Back to Platform Services](../../docs/services/README.md)

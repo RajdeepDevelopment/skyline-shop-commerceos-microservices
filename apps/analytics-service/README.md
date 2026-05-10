@@ -1,19 +1,19 @@
-# ðŸ“Š Analytics Service
+# 📊 Analytics Service
 
-## ðŸ“ Overview
+## 📝 Overview
 
 Consumes system-wide events to provide business intelligence and tracking.
 
-## ðŸ—ºï¸ System Design & Logic
+## 🗺️ System Design & Logic
 
 - **Event Sourcing**: Reconstructs state from historical events.
 - **Big Data Ready**: Designed to pipe events into data warehouses.
 
-## ðŸ”— Inner Documentation
+## 🔗 Inner Documentation
 
 - **[Architecture](./docs/architecture.md)** - Event aggregation and processing.
 
-## ðŸ”„ Core Flow: Event Collection
+## 🔄 Core Flow: Event Collection
 
 ```mermaid
 graph TD
@@ -26,4 +26,4 @@ graph TD
 
 ---
 
-[â¬…ï¸ Back to Platform Services](../../docs/services/README.md)
+[⬅️ Back to Platform Services](../../docs/services/README.md)

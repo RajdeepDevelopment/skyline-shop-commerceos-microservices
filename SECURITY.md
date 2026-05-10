@@ -1,12 +1,12 @@
-# ðŸ›¡ï¸ Security Policy
+# 🛡️ Security Policy
 
-## ðŸ“ Policy Overview
+## 📝 Policy Overview
 
 At the E-Commerce Microservices Platform, security is a first-class citizen. We follow **Defense-in-Depth** and **Zero-Trust** principles to ensure the integrity and confidentiality of our data.
 
 ---
 
-## ðŸš€ Security Features
+## 🚀 Security Features
 
 - **Zero-Trust Networking**: All internal service-to-service communication is verified.
 - **Payload Security**: High-value messages (Payments/Identity) are signed using **OpenPGP**.
@@ -15,7 +15,7 @@ At the E-Commerce Microservices Platform, security is a first-class citizen. We 
 
 ---
 
-## ðŸ›¡ï¸ Reporting a Vulnerability
+## 🛡️ Reporting a Vulnerability
 
 We welcome security researchers to help us keep this platform secure. If you discover a vulnerability, please do not open a public issue. Instead, follow this process:
 
@@ -25,7 +25,7 @@ We welcome security researchers to help us keep this platform secure. If you dis
 
 ---
 
-## ðŸ“œ Security Hardening Standards
+## 📜 Security Hardening Standards
 
 - **Container Security**: Images are scanned for CVEs during the build process.
 - **Secrets Management**: Secrets are never stored in the repository; we use environment injection and `generate-pgp-keys.js`.
@@ -34,5 +34,5 @@ We welcome security researchers to help us keep this platform secure. If you dis
 ---
 
 <div align="center">
-  MIT License â€¢ 2026 Production-Grade Engineering Hub
+  MIT License • 2026 Production-Grade Engineering Hub
 </div>

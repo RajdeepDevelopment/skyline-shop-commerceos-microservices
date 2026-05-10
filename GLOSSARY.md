@@ -1,4 +1,4 @@
-# ðŸ“– Engineering Glossary
+# 📖 Engineering Glossary
 
 A comprehensive reference for the architectural terms, patterns, and technologies used throughout the E-Commerce Microservices Platform.
 
@@ -52,5 +52,5 @@ A comprehensive reference for the architectural terms, patterns, and technologie
 ---
 
 <div align="center">
-  MIT License â€¢ 2026 Production-Grade Engineering Hub
+  MIT License • 2026 Production-Grade Engineering Hub
 </div>

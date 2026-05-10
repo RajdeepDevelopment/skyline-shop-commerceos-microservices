@@ -1,19 +1,19 @@
-# ðŸ”” Notification Service
+# 🔔 Notification Service
 
-## ðŸ“ Overview
+## 📝 Overview
 
 Event-driven service that handles all outgoing communication (Email, SMS, Push).
 
-## ðŸ—ºï¸ System Design & Logic
+## 🗺️ System Design & Logic
 
 - **Provider Agnostic**: Easily switch between SendGrid, Twilio, etc.
 - **Template Engine**: Manages dynamic content for notifications.
 
-## ðŸ”— Inner Documentation
+## 🔗 Inner Documentation
 
 - **[Architecture & Flow](./docs/architecture.md)** - Event consumers and templates.
 
-## ðŸ”„ Core Flow: Event-Driven Notification
+## 🔄 Core Flow: Event-Driven Notification
 
 ```mermaid
 graph LR
@@ -26,4 +26,4 @@ graph LR
 
 ---
 
-[â¬…ï¸ Back to Platform Services](../../docs/services/README.md)
+[⬅️ Back to Platform Services](../../docs/services/README.md)

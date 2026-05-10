@@ -1,10 +1,10 @@
-# ðŸ“š Messaging Library (`libs/messaging`)
+# 📚 Messaging Library (`libs/messaging`)
 
 The Messaging Library is the backbone of the platform's distributed communication, providing abstractions over **NATS JetStream** and **gRPC**.
 
 ---
 
-## ðŸ—ï¸ Core Responsibilities
+## 🏗️ Core Responsibilities
 
 - **Abstraction**: Simplifies complex NATS JetStream pub/sub logic into a clean `EventBusService`.
 - **Reliability**: Implements retry logic, acknowledgments, and dead-letter queue (DLQ) handling.
@@ -13,7 +13,7 @@ The Messaging Library is the backbone of the platform's distributed communicatio
 
 ---
 
-## ðŸ›°ï¸ Event Bus Architecture
+## 🛰️ Event Bus Architecture
 
 We use **Choreography-based Sagas** for distributed processes. The `EventBusService` handles the publication and subscription of these events.
 
@@ -39,7 +39,7 @@ graph TD
 
 ---
 
-## ðŸ”„ Lifecycle of an Event
+## 🔄 Lifecycle of an Event
 
 1.  **Emission**: A service calls `eventBus.emit('subject.action', data)`.
 2.  **Persistence**: NATS JetStream stores the message for reliability.
@@ -49,7 +49,7 @@ graph TD
 
 ---
 
-## ðŸ› ï¸ Usage Example
+## 🛠️ Usage Example
 
 ```typescript
 // Publishing an event
@@ -64,4 +64,4 @@ handleOrderCreated(data: OrderCreatedDto) {
 
 ---
 
-[â¬…ï¸ Back to Home](../../README.md)
+[⬅️ Back to Home](../../README.md)

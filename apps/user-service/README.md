@@ -1,20 +1,20 @@
-# ðŸ‘¤ User Service
+# 👤 User Service
 
-## ðŸ“ Overview
+## 📝 Overview
 
 Manages user profiles, preferences, and account metadata.
 
-## ðŸ—ºï¸ System Design & Logic
+## 🗺️ System Design & Logic
 
 - **Profile Management**: CRUD operations for user data.
 - **Event Consistency**: Emits `user.updated` events to keep other services (like Analytics) in sync.
 
-## ðŸ”— Inner Documentation
+## 🔗 Inner Documentation
 
 - **[Architecture](./docs/architecture.md)** - Service design and events.
 - **[Database Design](./docs/database-design.md)** - User schema.
 
-## ðŸ”„ Core Flow: Profile Update
+## 🔄 Core Flow: Profile Update
 
 ```mermaid
 sequenceDiagram
@@ -32,4 +32,4 @@ sequenceDiagram
 
 ---
 
-[â¬…ï¸ Back to Platform Services](../../docs/services/README.md)
+[⬅️ Back to Platform Services](../../docs/services/README.md)

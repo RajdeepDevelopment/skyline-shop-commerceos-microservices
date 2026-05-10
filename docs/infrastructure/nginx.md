@@ -1,17 +1,17 @@
-# ðŸŸ¢ Nginx Reverse Proxy
+# 🟢 Nginx Reverse Proxy
 
-## ðŸ“ Overview
+## 📝 Overview
 
 Nginx acts as the primary entry point (Ingress) for the platform, providing a secure and scalable way to expose our microservices.
 
-## ðŸ—ï¸ Why Nginx?
+## 🏗️ Why Nginx?
 
 1.  **SSL Termination**: Centralized management of TLS certificates.
 2.  **Load Balancing**: Distributing traffic across multiple instances of the API Gateway.
 3.  **Static Content**: Serving the frontend assets efficiently.
 4.  **Security**: Shielding internal service ports from the public internet.
 
-## ðŸ”„ Request Flow
+## 🔄 Request Flow
 
 ```mermaid
 graph LR
@@ -23,4 +23,4 @@ graph LR
 
 ---
 
-[â¬…ï¸ Back to Infrastructure Index](./README.md)
+[⬅️ Back to Infrastructure Index](./README.md)

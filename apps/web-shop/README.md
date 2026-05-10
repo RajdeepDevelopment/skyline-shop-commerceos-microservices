@@ -12,11 +12,11 @@ Each module (auth, cart, products, orders, etc.) follows this structure:
 
 ```
 modules/[module-name]/
-Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ components/     # Module-specific React components
-Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ services/       # API service layer for backend communication
-Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ stores/         # Zustand state management
-Ã¢â€Å“Ã¢â€â‚¬Ã¢â€â‚¬ types/          # TypeScript type definitions
-Ã¢â€â€Ã¢â€â‚¬Ã¢â€â‚¬ hooks/          # Custom React hooks
+â”œâ”€â”€ components/     # Module-specific React components
+â”œâ”€â”€ services/       # API service layer for backend communication
+â”œâ”€â”€ stores/         # Zustand state management
+â”œâ”€â”€ types/          # TypeScript type definitions
+â””â”€â”€ hooks/          # Custom React hooks
 ```
 
 ### Common Components

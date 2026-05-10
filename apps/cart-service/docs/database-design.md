@@ -1,6 +1,6 @@
 # Cart Service: Database Design (Redis)
 
-## ðŸ—„ï¸ Schema Strategy
+## 🗄️ Schema Strategy
 
 Since carts are transient, we use **Redis Hashes** for optimal performance and memory efficiency.
 
@@ -20,7 +20,7 @@ Since carts are transient, we use **Redis Hashes** for optimal performance and m
 - All cart keys are set with an `EXPIRE` of 604800 seconds (7 days).
 - Every update to the cart resets the TTL.
 
-## ðŸ› ï¸ Rationale
+## 🛠️ Rationale
 
 - **Why Redis?**: Sub-millisecond latency for frequent updates.
 - **Why Hashes?**: Allows updating specific items without rewriting the entire cart object.

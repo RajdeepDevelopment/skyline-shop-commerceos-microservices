@@ -1,8 +1,8 @@
-# ðŸ” Security Architecture
+# 🔐 Security Architecture
 
 The platform follows a **Zero-Trust** and **Defense-in-Depth** strategy.
 
-## ðŸ›¡ï¸ Security Layers
+## 🛡️ Security Layers
 
 ### 1. Identity & Access (IAM)
 
@@ -15,7 +15,7 @@ The platform follows a **Zero-Trust** and **Defense-in-Depth** strategy.
 - **Encryption in Transit**: TLS for all gRPC and HTTP traffic.
 - **Sensitive Payloads**: We use **OpenPGP** to sign/encrypt high-value messages between services.
 
-## ðŸ”„ Signature Flow (PGP)
+## 🔄 Signature Flow (PGP)
 
 ```mermaid
 sequenceDiagram
@@ -32,4 +32,4 @@ sequenceDiagram
 
 ---
 
-[â¬…ï¸ Back to Architecture Index](./README.md)
+[⬅️ Back to Architecture Index](./README.md)

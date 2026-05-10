@@ -1,8 +1,8 @@
-# ðŸ—ï¸ System Overview
+# 🏗️ System Overview
 
 The **E-Commerce Microservices Platform** is designed for high availability, scalability, and maintainability.
 
-## ðŸ—ºï¸ High-Level Architecture
+## 🗺️ High-Level Architecture
 
 The system follows a **decoupled microservices architecture** where each service owns its data and communicates primarily via asynchronous events.
 
@@ -46,7 +46,7 @@ graph TB
     Core --> RD
 ```
 
-## ðŸ—ï¸ Architectural Patterns
+## 🏗️ Architectural Patterns
 
 ### 1. Microservices
 
@@ -74,4 +74,4 @@ The gateway acts as the single entry point, handling:
 
 ---
 
-[ðŸ”— View Microservices Architecture](./microservices-architecture.md) | [â¬…ï¸ Back to Architecture Index](./README.md)
+[🔗 View Microservices Architecture](./microservices-architecture.md) | [⬅️ Back to Architecture Index](./README.md)

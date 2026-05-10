@@ -1,6 +1,6 @@
 <div align="center">
   <img src="https://nestjs.com/img/logo-small.svg" width="120" alt="NestJS Logo" />
-  <h1>ðŸš€ E-Commerce Microservices Platform</h1>
+  <h1>🚀 E-Commerce Microservices Platform</h1>
   <p><b>A production-grade, high-scale distributed systems reference architecture.</b></p>
 
 [![NestJS](https://img.shields.io/badge/Framework-NestJS-E0234E?style=for-the-badge&logo=nestjs)](https://nestjs.com/)
@@ -13,11 +13,11 @@
 
 ---
 
-## ðŸ”­ Project Vision
+## 🔭 Project Vision
 
 This platform is an elite-level implementation of a modern e-commerce backend, designed for **high availability**, **massive scalability**, and **zero-trust security**. It serves as a blueprint for Staff+ engineers to demonstrate distributed systems patterns used at companies like Stripe, Uber, and Netflix.
 
-### ðŸŽ¯ What You'll Learn
+### 🎯 What You'll Learn
 
 - **Distributed Systems**: Service discovery, load balancing, and gRPC orchestration.
 - **Data Scaling**: Multi-node database sharding and read-replica strategies.
@@ -27,20 +27,20 @@ This platform is an elite-level implementation of a modern e-commerce backend, d
 
 ---
 
-## ðŸ—ºï¸ Documentation Portal
+## 🗺️ Documentation Portal
 
 | Layer                     | Focus                      | Links                                                                                                                                                                                            |
 | :------------------------ | :------------------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **ðŸ—ï¸ Architecture**    | System design & principles | [Deep Dive](./docs/architecture/system-design-deep-dive.md) â€¢ [Overview](./docs/architecture/system-overview.md) â€¢ [CQRS](./docs/architecture/cqrs-pattern.md)                               |
-| **ðŸ›¡ï¸ Reliability**    | Scaling & Resiliency       | [Scaling & Sharding](./docs/infrastructure/scaling-and-sharding.md) â€¢ [Resiliency Patterns](./docs/architecture/resiliency-patterns.md) â€¢ [Testing](./docs/architecture/testing-strategy.md) |
-| **ðŸ” Security**          | Protection & Identity      | [Security Architecture](./docs/architecture/security-architecture.md) â€¢ [Auth Flow](./docs/flows/authentication-flow.md) â€¢ [Security Policy](./SECURITY.md)                                  |
-| **ðŸ§© Services**         | Domain Implementation      | [API Gateway](./apps/api-gateway/README.md) â€¢ [Order Service](./apps/order-service/README.md) â€¢ [Full Catalog](./docs/services/README.md)                                                    |
-| **ðŸ“ˆ Observability**    | Metrics & Monitoring       | [Monitoring Strategy](./docs/infrastructure/observability.md) â€¢ [Glossary](./GLOSSARY.md)                                                                                                      |
-| **ðŸ› ï¸ Infrastructure** | Tooling & DevOps           | [Docker Setup](./docs/infrastructure/docker-setup.md) â€¢ [Nginx Proxy](./docs/infrastructure/nginx.md) â€¢ [Roadmap](./ROADMAP.md)                                                              |
+| **🏗️ Architecture**    | System design & principles | [Deep Dive](./docs/architecture/system-design-deep-dive.md) • [Overview](./docs/architecture/system-overview.md) • [CQRS](./docs/architecture/cqrs-pattern.md)                               |
+| **🛡️ Reliability**    | Scaling & Resiliency       | [Scaling & Sharding](./docs/infrastructure/scaling-and-sharding.md) • [Resiliency Patterns](./docs/architecture/resiliency-patterns.md) • [Testing](./docs/architecture/testing-strategy.md) |
+| **🔐 Security**          | Protection & Identity      | [Security Architecture](./docs/architecture/security-architecture.md) • [Auth Flow](./docs/flows/authentication-flow.md) • [Security Policy](./SECURITY.md)                                  |
+| **🧩 Services**         | Domain Implementation      | [API Gateway](./apps/api-gateway/README.md) • [Order Service](./apps/order-service/README.md) • [Full Catalog](./docs/services/README.md)                                                    |
+| **📈 Observability**    | Metrics & Monitoring       | [Monitoring Strategy](./docs/infrastructure/observability.md) • [Glossary](./GLOSSARY.md)                                                                                                      |
+| **🛠️ Infrastructure** | Tooling & DevOps           | [Docker Setup](./docs/infrastructure/docker-setup.md) • [Nginx Proxy](./docs/infrastructure/nginx.md) • [Roadmap](./ROADMAP.md)                                                              |
 
 ---
 
-## ðŸ—ï¸ System Reference Architecture
+## 🏗️ System Reference Architecture
 
 ```mermaid
 graph TD
@@ -84,18 +84,18 @@ graph TD
 
 ---
 
-## ðŸ›¸ Engineering Roadmap
+## 🛸 Engineering Roadmap
 
 Propel your skills through our context-driven learning trajectory:
 
-1.  **[ðŸŒ‘ Phase 1: Foundations](./docs/learning-path/beginner.md)**: Monorepo patterns, Domain Isolation, and NestJS Modules.
-2.  **[ðŸš€ Phase 2: Distributed Systems](./docs/learning-path/intermediate.md)**: gRPC, NATS Pub/Sub, and API Gateway orchestration.
-3.  **[ðŸŒŒ Phase 3: High Scale & Resilience](./docs/learning-path/advanced.md)**: CQRS, Database Sharding, and Circuit Breakers.
-4.  **[ðŸ”­ Phase 4: Platform Engineering](./docs/learning-path/engineering-roadmap.md)**: Infrastructure as Code, Monitoring, and Zero-Trust Security.
+1.  **[🌑 Phase 1: Foundations](./docs/learning-path/beginner.md)**: Monorepo patterns, Domain Isolation, and NestJS Modules.
+2.  **[🚀 Phase 2: Distributed Systems](./docs/learning-path/intermediate.md)**: gRPC, NATS Pub/Sub, and API Gateway orchestration.
+3.  **[🌌 Phase 3: High Scale & Resilience](./docs/learning-path/advanced.md)**: CQRS, Database Sharding, and Circuit Breakers.
+4.  **[🔭 Phase 4: Platform Engineering](./docs/learning-path/engineering-roadmap.md)**: Infrastructure as Code, Monitoring, and Zero-Trust Security.
 
 ---
 
-## ðŸ› ï¸ Technology Matrix
+## 🛠️ Technology Matrix
 
 | Category          | Technology           | Decision Rationale                                                  |
 | :---------------- | :------------------- | :------------------------------------------------------------------ |
@@ -108,21 +108,21 @@ Propel your skills through our context-driven learning trajectory:
 
 ---
 
-## âš¡ Production-Grade Features
+## ⚡ Production-Grade Features
 
-- âœ… **Database Sharding**: Key-based horizontal partitioning for massive product catalogs.
-- âœ… **Idempotency**: Guaranteed single execution for sensitive operations (Payments/Orders).
-- âœ… **Distributed Caching**: Multi-level caching strategy (Redis + In-memory).
-- âœ… **Event Sourcing (Lite)**: Persistent event streams in NATS for analytics and auditing.
-- âœ… **Zero-Trust Security**: PGP signed payloads for internal service-to-service communication.
+- ✅ **Database Sharding**: Key-based horizontal partitioning for massive product catalogs.
+- ✅ **Idempotency**: Guaranteed single execution for sensitive operations (Payments/Orders).
+- ✅ **Distributed Caching**: Multi-level caching strategy (Redis + In-memory).
+- ✅ **Event Sourcing (Lite)**: Persistent event streams in NATS for analytics and auditing.
+- ✅ **Zero-Trust Security**: PGP signed payloads for internal service-to-service communication.
 
 ---
 
-## ðŸš€ Rapid Onboarding
+## 🚀 Rapid Onboarding
 
 ### 1. Prerequisites
 
-- **Node.js** v24+ â€¢ **pnpm** v9+
+- **Node.js** v24+ • **pnpm** v9+
 - **Docker** & **Docker Compose**
 
 ### 2. Automated Bootstrap
@@ -134,7 +134,7 @@ chmod +x setup.sh
 
 ---
 
-## ðŸ“œ Architectural Decisions (ADR)
+## 📜 Architectural Decisions (ADR)
 
 We document the **WHY** behind every major architectural choice to maintain engineering context.
 
@@ -144,7 +144,7 @@ We document the **WHY** behind every major architectural choice to maintain engi
 
 ---
 
-## ðŸ“„ Repository Standards
+## 📄 Repository Standards
 
 - **[CONTRIBUTING.md](./CONTRIBUTING.md)**: Engineering standards and PR workflow.
 - **[SECURITY.md](./SECURITY.md)**: Security policy and vulnerability reporting.
@@ -153,5 +153,5 @@ We document the **WHY** behind every major architectural choice to maintain engi
 ---
 
 <div align="center">
-  MIT License â€¢ 2026 Production-Grade Engineering Hub
+  MIT License • 2026 Production-Grade Engineering Hub
 </div>

@@ -1,20 +1,20 @@
-# ðŸ’³ Payment Service
+# 💳 Payment Service
 
-## ðŸ“ Overview
+## 📝 Overview
 
 Handles financial transactions and integrates with external payment gateways.
 
-## ðŸ—ºï¸ System Design & Logic
+## 🗺️ System Design & Logic
 
 - **Idempotency**: Ensures that the same transaction isn't processed twice.
 - **Security**: Never stores full card details; uses tokenization.
 
-## ðŸ”— Inner Documentation
+## 🔗 Inner Documentation
 
 - **[Architecture & Security](./docs/architecture.md)** - Idempotency and Gateway integration.
 - **[Database Design](./docs/database-design.md)** - Transaction logs.
 
-## ðŸ”„ Core Flow: Payment Processing
+## 🔄 Core Flow: Payment Processing
 
 ```mermaid
 sequenceDiagram
@@ -31,4 +31,4 @@ sequenceDiagram
 
 ---
 
-[â¬…ï¸ Back to Platform Services](../../docs/services/README.md)
+[⬅️ Back to Platform Services](../../docs/services/README.md)

@@ -1,21 +1,21 @@
-# ðŸšª API Gateway
+# 🚪 API Gateway
 
-## ðŸ“ Overview
+## 📝 Overview
 
 The API Gateway is the single entry point for all client requests. It acts as a reverse proxy, routing requests to appropriate downstream microservices.
 
-## ðŸ—ºï¸ System Design & Logic
+## 🗺️ System Design & Logic
 
 - **Reverse Proxy**: Built on NestJS, routing traffic based on path prefixes (e.g., `/auth/*`, `/products/*`).
 - **Cross-Cutting Concerns**: Handles Authentication, Rate Limiting, and Request Logging centrally.
 - **Aggregation**: Orchestrates calls to multiple services for complex frontend views.
 
-## ðŸ”— Inner Documentation
+## 🔗 Inner Documentation
 
 - **[Architecture & Routing](./docs/architecture.md)** - Gateway patterns and routing tables.
 - **[Security & Rate Limiting](./docs/security.md)** - Protection strategies.
 
-## ðŸ”„ Core Flow: Request Routing
+## 🔄 Core Flow: Request Routing
 
 ```mermaid
 graph TD
@@ -30,4 +30,4 @@ graph TD
 
 ---
 
-[â¬…ï¸ Back to Platform Services](../../docs/services/README.md)
+[⬅️ Back to Platform Services](../../docs/services/README.md)

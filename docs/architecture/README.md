@@ -1,8 +1,8 @@
-# ðŸ—ï¸ Architecture & Strategy
+# 🏗️ Architecture & Strategy
 
 This section covers the high-level system design, patterns, and strategies that govern the E-Commerce Microservices Platform.
 
-## ðŸ“– Key Documentation
+## 📖 Key Documentation
 
 - **[System Overview](./system-overview.md)** - The high-level architectural map.
 - **[Microservices Architecture](./microservices-architecture.md)** - Why and how we use microservices.
@@ -16,4 +16,4 @@ This section covers the high-level system design, patterns, and strategies that 
 
 ---
 
-[â¬…ï¸ Back to Home](../../README.md)
+[⬅️ Back to Home](../../README.md)

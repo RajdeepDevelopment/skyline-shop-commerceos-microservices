@@ -1,14 +1,14 @@
-# ðŸŒ‘ Beginner: From Monolith to Modules
+# 🌑 Beginner: From Monolith to Modules
 
 In the context of this platform, the beginner phase is about understanding how business logic is organized before it becomes distributed.
 
-## ðŸŽ¯ Learning Objectives
+## 🎯 Learning Objectives
 
 1.  **Monorepo Structure**: Understanding how `pnpm workspaces` manage multiple packages in one place.
 2.  **Domain Isolation**: Learning why `User`, `Product`, and `Order` are separate folders even if they feel like one app.
 3.  **Basic NestJS**: Mastering Controllers, Services, and Providers.
 
-## ðŸ—ï¸ The Starting Point
+## 🏗️ The Starting Point
 
 Most developers start with a **Monolith**. In this repo, we simulate the "Modular" approach first.
 
@@ -20,4 +20,4 @@ Most developers start with a **Monolith**. In this repo, we simulate the "Modula
 
 ---
 
-[âž¡ï¸ Next: Intermediate Path](./intermediate.md) | [â¬…ï¸ Back to Roadmap](./engineering-roadmap.md)
+[➡️ Next: Intermediate Path](./intermediate.md) | [⬅️ Back to Roadmap](./engineering-roadmap.md)
