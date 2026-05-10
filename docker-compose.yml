@@ -1,0 +1,162 @@
+services:
+  auth_db:
+    image: postgres:15-alpine
+    container_name: ecommerce_auth_db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: auth_db
+    ports:
+      - '5433:5432'
+    volumes:
+      - auth_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U root -d auth_db']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ecommerce_network
+
+  order_db:
+    image: postgres:15-alpine
+    container_name: ecommerce_order_db
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: order_db
+    ports:
+      - '5434:5432'
+    volumes:
+      - order_db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U root -d order_db']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ecommerce_network
+
+  # PRODUCT DATABASE - MASTER (WRITES)
+  product_db_master:
+    image: postgres:15-alpine
+    container_name: ecommerce_product_db_master
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: product_db
+    ports:
+      - '5435:5432'
+    volumes:
+      - product_db_master_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U root -d product_db']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ecommerce_network
+
+  # PRODUCT DATABASE - REPLICA (READS)
+  product_db_replica:
+    image: postgres:15-alpine
+    container_name: ecommerce_product_db_replica
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: product_db
+    ports:
+      - '5436:5432'
+    volumes:
+      - product_db_replica_data:/var/lib/postgresql/data
+    networks:
+      - ecommerce_network
+
+  # PRODUCT DATABASE - SHARD B (HORIZONTAL SCALING)
+  product_db_shard_b:
+    image: postgres:15-alpine
+    container_name: ecommerce_product_db_shard_b
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: product_db_shard_b
+    ports:
+      - '5437:5432'
+    volumes:
+      - product_db_shard_b_data:/var/lib/postgresql/data
+    networks:
+      - ecommerce_network
+
+  # LOAD BALANCER (NGINX)
+  nginx_lb:
+    image: nginx:alpine
+    container_name: ecommerce_lb
+    ports:
+      - '80:80'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    networks:
+      - ecommerce_network
+
+  redis:
+    image: redis:7-alpine
+    container_name: ecommerce_redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --requirepass password
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - ecommerce_network
+
+  nats:
+    image: nats:2.9-alpine
+    container_name: ecommerce_nats
+    ports:
+      - '4222:4222'
+      - '8222:8222' # Management interface
+    command: -js # Enable JetStream
+    volumes:
+      - nats_data:/data
+    networks:
+      - ecommerce_network
+
+  prometheus:
+    image: prom/prometheus:v2.45.0
+    container_name: ecommerce_prometheus
+    ports:
+      - '9090:9090'
+    volumes:
+      - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - ecommerce_network
+
+  grafana:
+    image: grafana/grafana:10.0.3
+    container_name: ecommerce_grafana
+    ports:
+      - '3100:3000'
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    depends_on:
+      - prometheus
+    networks:
+      - ecommerce_network
+
+volumes:
+  auth_db_data:
+  order_db_data:
+  product_db_master_data:
+  product_db_replica_data:
+  product_db_shard_b_data:
+  redis_data:
+  nats_data:
+
+networks:
+  ecommerce_network:
+    driver: bridge

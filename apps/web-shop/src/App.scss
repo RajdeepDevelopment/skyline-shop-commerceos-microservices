@@ -1,0 +1,26 @@
+@import './styles/variables.scss';
+
+.premium-card {
+  transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  &:hover {
+    transform: translateY(-8px) scale(1.02);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border-color: rgba($primary-color, 0.3);
+  }
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.bg-gradient-mesh {
+  background-color: $bg-dark;
+  background-image:
+    radial-gradient(at 0% 0%, rgba($primary-color, 0.15) 0, transparent 50%),
+    radial-gradient(at 50% 0%, rgba(#6366f1, 0.1) 0, transparent 50%),
+    radial-gradient(at 100% 0%, rgba(#a855f7, 0.15) 0, transparent 50%);
+}

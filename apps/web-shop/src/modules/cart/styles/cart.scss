@@ -1,0 +1,88 @@
+// Cart module styles
+.cart-container {
+  @apply bg-white rounded-lg shadow-md p-6 mb-6;
+}
+
+.cart-header {
+  @apply border-b border-slate-200 pb-4 mb-4;
+}
+
+.cart-title {
+  @apply text-2xl font-bold text-slate-900;
+}
+
+.cart-empty {
+  @apply text-center py-8 text-slate-500;
+}
+
+.cart-items {
+  @apply space-y-4 mb-6;
+}
+
+.cart-item {
+  @apply flex items-center space-x-4 p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors;
+}
+
+.cart-item-image {
+  @apply w-20 h-20 object-cover rounded-md;
+}
+
+.cart-item-details {
+  @apply flex-1;
+}
+
+.cart-item-name {
+  @apply font-medium text-slate-900;
+}
+
+.cart-item-price {
+  @apply text-slate-500;
+}
+
+.cart-item-quantity {
+  @apply flex items-center space-x-2;
+}
+
+.cart-quantity-btn {
+  @apply p-1 border border-slate-300 rounded hover:bg-slate-100;
+}
+
+.cart-quantity-input {
+  @apply w-16 text-center border border-slate-300 rounded px-2 py-1;
+}
+
+.cart-item-remove {
+  @apply text-red-500 hover:text-red-700 p-2;
+}
+
+.cart-summary {
+  @apply border-t border-slate-200 pt-4;
+}
+
+.cart-summary-row {
+  @apply flex justify-between py-2;
+}
+
+.cart-summary-total {
+  @apply flex justify-between py-2 text-lg font-bold text-slate-900;
+}
+
+.cart-actions {
+  @apply mt-6 space-y-3;
+}
+
+.cart-checkout-btn {
+  @apply w-full bg-primary-600 text-white py-3 px-4 rounded-md hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500;
+}
+
+.cart-continue-btn {
+  @apply w-full border border-slate-300 text-slate-700 py-3 px-4 rounded-md hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-primary-500;
+}
+
+.cart-loading {
+  @apply flex items-center justify-center py-8;
+}
+
+.cart-error {
+  @apply bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-md;
+}
