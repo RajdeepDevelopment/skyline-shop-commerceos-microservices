@@ -34,7 +34,7 @@ jobs:
       # 1. Block direct pushes to protected branches
       # --------------------------------------------------
       - name: 🚫 Prevent Direct Push to Protected Branches
-        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development') && github.actor != 'dependabot[bot]'
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development') && github.actor != 'dependabot[bot]' && github.actor != 'RajdeepDevelopment'
         run: |
           echo "❌ Direct pushes to protected branches are not allowed."
           echo "Use Pull Requests with approvals for all changes."
