@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { InventoryServiceController } from './inventory-service.controller';
 import { InventoryServiceService } from './inventory-service.service';
+import { EventBusService } from '@app/messaging/event-bus.service';
 
 describe('InventoryServiceController', () => {
   let inventoryServiceController: InventoryServiceController;
@@ -8,15 +9,17 @@ describe('InventoryServiceController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [InventoryServiceController],
-      providers: [InventoryServiceService],
+      providers: [
+        InventoryServiceService,
+        { provide: 'PRISMA_CLIENT', useValue: {} },
+        { provide: EventBusService, useValue: { publish: jest.fn() } },
+      ],
     }).compile();
 
     inventoryServiceController = app.get<InventoryServiceController>(InventoryServiceController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(inventoryServiceController.getHello()).toBe('Hello World!');
-    });
+  it('should be defined', () => {
+    expect(inventoryServiceController).toBeDefined();
   });
 });

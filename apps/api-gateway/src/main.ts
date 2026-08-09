@@ -4,6 +4,8 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
 import helmet from 'helmet';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const cookieParser = require('cookie-parser');
 import { ApiGatewayModule } from './api-gateway.module';
 import { GlobalHttpExceptionFilter } from '@app/common/filters/http-exception.filter';
 import { CorrelationIdMiddleware } from '@app/common/middleware/correlation-id.middleware';
@@ -15,6 +17,7 @@ async function bootstrap() {
 
   // Security
   app.use(helmet());
+  app.use(cookieParser());
   app.enableCors({
     origin: process.env.CORS_ORIGINS ? process.env.CORS_ORIGINS.split(',') : true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
@@ -127,8 +130,53 @@ async function bootstrap() {
 
   await app.listen(port);
 
-  console.log(`✅ API Gateway running:   http://localhost:${port}`);
-  console.log(`📖 Swagger docs:          http://localhost:${port}/api/v1/docs`);
+  console.log('\n');
+  console.log('╔══════════════════════════════════════════════════════════════╗');
+  console.log('║              SKYLINE COMMERCEOS - ALL SERVICES              ║');
+  console.log('╠══════════════════════════════════════════════════════════════╣');
+  console.log('║  SERVICES                                                   ║');
+  console.log('║  ─────────────────────────────────────────────────────────── ║');
+  console.log(`║  API Gateway:      http://localhost:${port}                   ║`);
+  console.log('║  Auth Service:     http://localhost:3001                     ║');
+  console.log('║  Product Service:  http://localhost:3003                     ║');
+  console.log('║  Cart Service:     http://localhost:3002                     ║');
+  console.log('║  Order Service:    http://localhost:3006                     ║');
+  console.log('║  Payment Service:  http://localhost:3007                     ║');
+  console.log('║  Inventory:        http://localhost:3004                     ║');
+  console.log('║                                                               ║');
+  console.log('║  API DOCS                                                    ║');
+  console.log('║  ─────────────────────────────────────────────────────────── ║');
+  console.log('║  Swagger Master:   http://localhost:3000/api/v1/docs         ║');
+  console.log('║  Swagger Auth:     http://localhost:3000/api/v1/docs/auth    ║');
+  console.log('║  Swagger Commerce: http://localhost:3000/api/v1/docs/commerce║');
+  console.log('║  Swagger System:   http://localhost:3000/api/v1/docs/system  ║');
+  console.log('║                                                               ║');
+  console.log('║  DATABASES                                                    ║');
+  console.log('║  ─────────────────────────────────────────────────────────── ║');
+  console.log('║  Auth DB:          http://localhost:5050  (pgAdmin)          ║');
+  console.log('║  Order DB:         http://localhost:5050  (pgAdmin)          ║');
+  console.log('║  Product DB:       http://localhost:5050  (pgAdmin)          ║');
+  console.log('║  PgBouncer:        localhost:6432                            ║');
+  console.log('║                                                               ║');
+  console.log('║  OBSERVABILITY                                                ║');
+  console.log('║  ─────────────────────────────────────────────────────────── ║');
+  console.log('║  Grafana:          http://localhost:3100  (admin/admin)      ║');
+  console.log('║  Prometheus:       http://localhost:9090                     ║');
+  console.log('║  Jaeger Traces:    http://localhost:16686                    ║');
+  console.log('║  AlertManager:     http://localhost:9093                     ║');
+  console.log('║                                                               ║');
+  console.log('║  DATA TOOLS                                                   ║');
+  console.log('║  ─────────────────────────────────────────────────────────── ║');
+  console.log('║  pgAdmin:          http://localhost:5050                     ║');
+  console.log('║  Redis Insight:    http://localhost:5540                     ║');
+  console.log('║  OpenSearch UI:    http://localhost:5601                     ║');
+  console.log('║  NATS UI (Nui):    http://localhost:31311                    ║');
+  console.log('║                                                               ║');
+  console.log('║  FRONTEND                                                     ║');
+  console.log('║  ─────────────────────────────────────────────────────────── ║');
+  console.log('║  Web Shop:         http://localhost:5173                     ║');
+  console.log('╚══════════════════════════════════════════════════════════════╝');
+  console.log('\n');
 }
 
 void bootstrap();

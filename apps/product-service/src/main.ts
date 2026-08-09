@@ -4,6 +4,7 @@ import { PROTO_PATHS } from '@app/grpc';
 import { ProductServiceModule } from './product-service.module';
 
 async function bootstrap() {
+  process.env.SERVICE_NAME = 'product';
   const app = await NestFactory.create(ProductServiceModule);
 
   // gRPC microservice transport

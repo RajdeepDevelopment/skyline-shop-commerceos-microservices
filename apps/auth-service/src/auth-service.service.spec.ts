@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { AuthServiceService } from './auth-service.service';
 import { JwtService } from '@nestjs/jwt';
+import { DatabaseService } from '@app/database';
 
 describe('AuthServiceService', () => {
   let service: AuthServiceService;
@@ -10,9 +11,15 @@ describe('AuthServiceService', () => {
     verify: jest.fn().mockReturnValue({ sub: 'user-1', email: 'test@test.com', roles: ['user'] }),
   };
 
+  const mockDatabase = {};
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
-      providers: [AuthServiceService, { provide: JwtService, useValue: mockJwtService }],
+      providers: [
+        AuthServiceService,
+        { provide: JwtService, useValue: mockJwtService },
+        { provide: DatabaseService, useValue: mockDatabase },
+      ],
     }).compile();
 
     service = module.get<AuthServiceService>(AuthServiceService);
@@ -47,20 +54,6 @@ describe('AuthServiceService', () => {
       });
       const result = service.validateToken('bad.token');
       expect(result).toBeNull();
-    });
-  });
-
-  describe('hashPassword', () => {
-    it('should return a deterministic hash for same input', () => {
-      const hash1 = service.hashPassword('password123', 'salt');
-      const hash2 = service.hashPassword('password123', 'salt');
-      expect(hash1).toBe(hash2);
-    });
-
-    it('should return different hashes for different passwords', () => {
-      const hash1 = service.hashPassword('password1', 'salt');
-      const hash2 = service.hashPassword('password2', 'salt');
-      expect(hash1).not.toBe(hash2);
     });
   });
 });

@@ -1,9 +1,10 @@
 import { Controller, Post, Body, HttpCode, HttpStatus } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 import { MessagePattern, Payload, GrpcMethod } from '@nestjs/microservices';
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-import { AuthServiceService, JwtPayload, TokenPair } from './auth-service.service';
+import { RpcException } from '@nestjs/microservices';
+import { AuthServiceService, JwtPayload } from './auth-service.service';
 import { LoginDto, RegisterDto, RefreshTokenDto } from '@app/common/dto/auth.dto';
+import { status } from '@grpc/grpc-js';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -12,21 +13,23 @@ export class AuthServiceController {
 
   @Post('register')
   @GrpcMethod('AuthService', 'Register')
+  @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Register a new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully.' })
-  register(@Body() _dto: RegisterDto): any {
-    // Full implementation: validate, create user, hash password, return tokens
-    return {
-      accessToken: 'dummy-token',
-      refreshToken: 'dummy-refresh',
-      user: {
-        id: 'user-id',
-        email: _dto.email,
-        role: 'user',
-        firstName: _dto.firstName ?? _dto.name,
-        lastName: _dto.lastName,
-      },
-    };
+  @ApiResponse({ status: 409, description: 'Email already registered.' })
+  async register(@Body() dto: RegisterDto) {
+    try {
+      return await this.authService.register(
+        dto.email,
+        dto.password,
+        dto.firstName ?? dto.name ?? dto.email.split('@')[0],
+      );
+    } catch (error: any) {
+      if (error.status === 409) {
+        throw new RpcException({ code: status.ALREADY_EXISTS, message: error.message });
+      }
+      throw new RpcException({ code: status.INTERNAL, message: error.message });
+    }
   }
 
   @Post('login')
@@ -34,34 +37,42 @@ export class AuthServiceController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login and receive JWT tokens' })
   @ApiResponse({ status: 200, description: 'Returns access and refresh tokens.' })
-  login(@Body() dto: LoginDto): any {
-    // Full implementation: validate credentials, lookup user, generate tokens
-    const payload: JwtPayload = { sub: 'user-id', email: dto.email, roles: ['user'] };
-    const tokens = this.authService.generateTokens(payload);
-    return {
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      user: {
-        id: 'user-id',
-        email: dto.email,
-        role: 'user',
-      },
-    };
+  @ApiResponse({ status: 401, description: 'Invalid credentials.' })
+  async login(@Body() dto: LoginDto) {
+    if (!dto.email || !dto.password) {
+      throw new RpcException({
+        code: status.INVALID_ARGUMENT,
+        message: 'Email and password are required',
+      });
+    }
+    try {
+      return await this.authService.login(dto.email, dto.password);
+    } catch (error: any) {
+      if (error.status === 401) {
+        throw new RpcException({ code: status.UNAUTHENTICATED, message: error.message });
+      }
+      throw new RpcException({ code: status.INTERNAL, message: error.message });
+    }
   }
 
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Rotate refresh token and get new access token' })
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  refresh(@Body() _dto: RefreshTokenDto): { message: string } {
-    // Full implementation: validate refresh token from DB, rotate it, return new pair
-    return { message: 'Refresh token rotation endpoint' };
+  @ApiResponse({ status: 200, description: 'New token pair.' })
+  @ApiResponse({ status: 401, description: 'Invalid refresh token.' })
+  async refresh(@Body() dto: RefreshTokenDto) {
+    try {
+      return await this.authService.refreshToken(dto.refreshToken);
+    } catch (error: any) {
+      if (error.status === 401) {
+        throw new RpcException({ code: status.UNAUTHENTICATED, message: error.message });
+      }
+      throw new RpcException({ code: status.INTERNAL, message: error.message });
+    }
   }
 
-  // ── gRPC handler: called by API Gateway to validate tokens ──────────────────
-
   @MessagePattern({ cmd: 'validate_token' })
-  validateToken(@Payload() data: { token: string }): any {
+  validateToken(@Payload() data: { token: string }) {
     const payload = this.authService.validateToken(data.token);
     return { valid: payload !== null, payload };
   }

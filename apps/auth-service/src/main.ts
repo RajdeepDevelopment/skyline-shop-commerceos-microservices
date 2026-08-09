@@ -5,6 +5,7 @@ import { PROTO_PATHS } from '@app/grpc';
 import { AuthServiceModule } from './auth-service.module';
 
 async function bootstrap() {
+  process.env.SERVICE_NAME = 'auth';
   // HTTP server for REST + Swagger
   const app = await NestFactory.create(AuthServiceModule);
 
@@ -20,21 +21,28 @@ async function bootstrap() {
     },
   });
 
-  // NATS transport for events
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.NATS,
-    options: {
-      servers: [process.env.NATS_URL ?? 'nats://localhost:4222'],
-      queue: 'auth-service',
-    },
-  });
+  // NATS transport for events (non-fatal — service runs HTTP+gRPC even if NATS is down)
+  try {
+    app.connectMicroservice<MicroserviceOptions>({
+      transport: Transport.NATS,
+      options: {
+        servers: [process.env.NATS_URL ?? 'nats://localhost:4222'],
+        queue: 'auth-service',
+      },
+    });
+  } catch (error) {
+    console.warn(`⚠ NATS unavailable, running without event bus: ${(error as Error).message}`);
+  }
 
-  await app.startAllMicroservices();
+  try {
+    await app.startAllMicroservices();
+  } catch (error) {
+    console.warn(`⚠ Microservice start error (NATS may be down): ${(error as Error).message}`);
+  }
 
   const port = parseInt(process.env.AUTH_SERVICE_PORT ?? '3001', 10);
   await app.listen(port);
 
   console.log(`✅ Auth Service running on port ${port}`);
 }
-
 void bootstrap();

@@ -5,11 +5,13 @@ import { PaymentServiceService } from './payment-service.service';
 import { ConfigModule } from '@nestjs/config';
 import { DatabaseModule } from '@app/database';
 import { MessagingModule } from '@app/messaging';
-import { CommonModule } from '@app/common';
+import { CommonModule, LivenessModule, ObservabilityModule } from '@app/common';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ObservabilityModule,
+    LivenessModule,
     DatabaseModule,
     MessagingModule,
     CommonModule,

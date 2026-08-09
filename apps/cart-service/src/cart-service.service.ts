@@ -1,25 +1,29 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { DatabaseService } from '@app/database';
+import { HttpService } from '@nestjs/axios';
+import { firstValueFrom } from 'rxjs';
 
 @Injectable()
 export class CartServiceService {
-  constructor(private readonly prisma: DatabaseService) {}
+  private readonly logger = new Logger(CartServiceService.name);
+  private readonly productServiceUrl: string;
+
+  constructor(
+    private readonly prisma: DatabaseService,
+    private readonly httpService: HttpService,
+  ) {
+    this.productServiceUrl = process.env.PRODUCT_SERVICE_URL || 'http://localhost:3003';
+  }
 
   async getCart(userId: string) {
     let cart = await this.prisma.cart.findUnique({
       where: { userId },
       include: {
-        items: {
-          include: {
-            product: true,
-          },
-        },
+        items: true,
       },
     });
 
     if (!cart) {
-      // Check if user exists, if not create a guest/placeholder user or handle accordingly
-      // For now, since we are using 'user-id' from FE, let's ensure the user exists
       let user = await this.prisma.user.findUnique({ where: { id: userId } });
       if (!user) {
         user = await this.prisma.user.upsert({
@@ -27,7 +31,7 @@ export class CartServiceService {
           update: {},
           create: {
             id: userId,
-            email: `${userId}@example.com`,
+            email: `${userId}@guest.local`,
             name: 'Guest User',
             passwordHash: 'placeholder',
           },
@@ -37,36 +41,25 @@ export class CartServiceService {
       cart = await this.prisma.cart.create({
         data: { userId },
         include: {
-          items: {
-            include: {
-              product: true,
-            },
-          },
+          items: true,
         },
       });
     }
 
-    return this.calculateTotal(cart);
+    const enrichedItems = await this.enrichCartItems(cart.items);
+    return this.calculateTotal({ ...cart, items: enrichedItems });
   }
 
   async addToCart(userId: string, productId: string, quantity: number) {
     const cart = await this.getCart(userId);
 
-    // Check if product exists before adding to cart
-    const product = await this.prisma.product.findUnique({
-      where: { id: productId },
-    });
+    const product = await this.findProduct(productId);
 
-    if (!product) {
-      throw new NotFoundException(`Product with ID ${productId} not found`);
-    }
-
-    const existingItem = cart.items.find((item) => item.productId === productId);
+    const existingItem = cart.items.find((item: any) => item.productId === productId);
 
     if (existingItem) {
       await this.prisma.cartItem.update({
         where: { id: existingItem.id },
-
         data: { quantity: existingItem.quantity + quantity },
       });
     } else {
@@ -85,7 +78,7 @@ export class CartServiceService {
   async updateQuantity(userId: string, itemId: string, quantity: number) {
     const cart = await this.getCart(userId);
 
-    const item = cart.items.find((i) => i.id === itemId);
+    const item = cart.items.find((i: any) => i.id === itemId);
 
     if (!item) {
       throw new NotFoundException('Cart item not found');
@@ -120,14 +113,67 @@ export class CartServiceService {
     return this.getCart(userId);
   }
 
+  private async findProduct(productId: string) {
+    try {
+      const response = await firstValueFrom(
+        this.httpService.get(`${this.productServiceUrl}/products/${productId}`),
+      );
+      return response.data;
+    } catch {
+      throw new NotFoundException(`Product with ID ${productId} not found`);
+    }
+  }
+
+  private async enrichCartItems(items: any[]) {
+    const productIds = items.map((item) => item.productId);
+    if (productIds.length === 0) return items;
+
+    const products = await Promise.all(
+      productIds.map(async (id) => {
+        try {
+          const response = await firstValueFrom(
+            this.httpService.get(`${this.productServiceUrl}/products/${id}`),
+          );
+          return response.data;
+        } catch {
+          return null;
+        }
+      }),
+    );
+
+    const productMap = new Map(products.filter(Boolean).map((p: any) => [p.id, p]));
+
+    return items.map((item) => ({
+      ...item,
+      product: productMap.get(item.productId) || {
+        id: item.productId,
+        title: 'Unknown Product',
+        price: 0,
+        thumbnail: '',
+        stock: 0,
+        inStock: false,
+      },
+    }));
+  }
+
   private calculateTotal(cart: any) {
-    const totalAmount = cart.items.reduce((acc: number, item: any) => {
-      return acc + Number(item.product.price) * item.quantity;
+    const subtotal = cart.items.reduce((acc: number, item: any) => {
+      const price = Number(item.product?.price || 0);
+      return acc + price * item.quantity;
     }, 0);
+
+    const discount = cart.items.reduce((acc: number, item: any) => {
+      const price = Number(item.product?.price || 0);
+      const pct = Number(item.product?.discountPercentage || 0);
+      return acc + price * (pct / 100) * item.quantity;
+    }, 0);
+
+    const totalAmount = Math.max(0, Math.round((subtotal - discount) * 100) / 100);
 
     return {
       ...cart,
-
+      subtotal,
+      discount,
       totalAmount,
     };
   }

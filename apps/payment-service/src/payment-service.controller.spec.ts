@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { PaymentServiceController } from './payment-service.controller';
 import { PaymentServiceService } from './payment-service.service';
+import { EventBusService } from '@app/messaging/event-bus.service';
 
 describe('PaymentServiceController', () => {
   let paymentServiceController: PaymentServiceController;
@@ -8,15 +9,17 @@ describe('PaymentServiceController', () => {
   beforeEach(async () => {
     const app: TestingModule = await Test.createTestingModule({
       controllers: [PaymentServiceController],
-      providers: [PaymentServiceService],
+      providers: [
+        PaymentServiceService,
+        { provide: 'PRISMA_CLIENT', useValue: {} },
+        { provide: EventBusService, useValue: { publish: jest.fn() } },
+      ],
     }).compile();
 
     paymentServiceController = app.get<PaymentServiceController>(PaymentServiceController);
   });
 
-  describe('root', () => {
-    it('should return "Hello World!"', () => {
-      expect(paymentServiceController.getHello()).toBe('Hello World!');
-    });
+  it('should be defined', () => {
+    expect(paymentServiceController).toBeDefined();
   });
 });

@@ -1,15 +1,18 @@
 import { NestFactory } from '@nestjs/core';
 import { CartServiceModule } from './cart-service.module';
+import { DecimalSerializationInterceptor } from './decimal-serialization.interceptor';
 
 async function bootstrap() {
+  // Cart tables live in the products database (shared via CART_DATABASE_*_URL)
+  process.env.SERVICE_NAME = 'cart';
+
   const app = await NestFactory.create(CartServiceModule);
 
-  // Explicitly set service name for database routing
-  process.env.SERVICE_NAME = 'product';
+  app.useGlobalInterceptors(new DecimalSerializationInterceptor());
 
   // Enable CORS for the frontend
   app.enableCors({
-    origin: true, // In production, replace with specific origins
+    origin: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     credentials: true,
   });

@@ -7,7 +7,6 @@ import {
   Body,
   Param,
   ParseUUIDPipe,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   NotFoundException,
   UseInterceptors,
   ClassSerializerInterceptor,
@@ -17,7 +16,7 @@ import { CartServiceService } from './cart-service.service';
 import { ApiTags, ApiOperation, ApiResponse } from '@nestjs/swagger';
 
 @ApiTags('Cart')
-@Controller(':userId')
+@Controller('cart/:userId')
 @UseInterceptors(ClassSerializerInterceptor)
 export class CartServiceController {
   constructor(private readonly cartService: CartServiceService) {}

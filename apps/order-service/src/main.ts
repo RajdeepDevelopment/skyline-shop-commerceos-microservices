@@ -4,6 +4,7 @@ import { PROTO_PATHS } from '@app/grpc';
 import { OrderServiceModule } from './order-service.module';
 
 async function bootstrap() {
+  process.env.SERVICE_NAME = 'order';
   const app = await NestFactory.create(OrderServiceModule);
 
   // gRPC microservice transport
@@ -16,16 +17,24 @@ async function bootstrap() {
     },
   });
 
-  // NATS transport for events
-  app.connectMicroservice<MicroserviceOptions>({
-    transport: Transport.NATS,
-    options: {
-      servers: [process.env.NATS_URL ?? 'nats://localhost:4222'],
-      queue: 'order-service',
-    },
-  });
+  // NATS transport for events (non-fatal)
+  try {
+    app.connectMicroservice<MicroserviceOptions>({
+      transport: Transport.NATS,
+      options: {
+        servers: [process.env.NATS_URL ?? 'nats://localhost:4222'],
+        queue: 'order-service',
+      },
+    });
+  } catch (error) {
+    console.warn(`⚠ NATS unavailable, running without event bus: ${(error as Error).message}`);
+  }
 
-  await app.startAllMicroservices();
+  try {
+    await app.startAllMicroservices();
+  } catch (error) {
+    console.warn(`⚠ Microservice start error (NATS may be down): ${(error as Error).message}`);
+  }
 
   const port = process.env.ORDER_SERVICE_PORT || 3006;
   await app.listen(port);
