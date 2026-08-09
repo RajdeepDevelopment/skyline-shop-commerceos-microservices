@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-shop
+  namespace: ecommerce
+  labels:
+    app: web-shop
+    version: v1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web-shop
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: web-shop
+        version: v1
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext: {}
+      containers:
+        - name: web-shop
+          image: ${REGISTRY}/skyline-web-shop:${TAG:-latest}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              protocol: TCP
+          env:
+            - name: NODE_ENV
+              value: production
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 80
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            readOnlyRootFilesystem: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-shop
+  namespace: ecommerce
+  labels:
+    app: web-shop
+spec:
+  type: ClusterIP
+  selector:
+    app: web-shop
+  ports:
+    - port: 80
+      targetPort: 80
+      protocol: TCP
+      name: http

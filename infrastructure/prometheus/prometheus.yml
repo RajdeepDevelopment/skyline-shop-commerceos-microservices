@@ -2,18 +2,55 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+
 scrape_configs:
   - job_name: 'prometheus'
     static_configs:
       - targets: ['localhost:9090']
 
-  - job_name: 'api-gateway'
+  - job_name: 'otel-collector'
     metrics_path: '/metrics'
+    static_configs:
+      - targets: ['otel_collector:8889']
+
+  # API gateway uses setGlobalPrefix('api') + versioning('1') → /api/v1/metrics
+  - job_name: 'api-gateway'
+    metrics_path: '/api/v1/metrics'
     static_configs:
       - targets: ['host.docker.internal:3000']
 
-  # Add other microservices as they expose metrics
+  # Standalone services don't set a global prefix → /metrics
   - job_name: 'auth-service'
     metrics_path: '/metrics'
     static_configs:
       - targets: ['host.docker.internal:3001']
+
+  - job_name: 'product-service'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:3003']
+
+  - job_name: 'cart-service'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:3005']
+
+  - job_name: 'order-service'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:3006']
+
+  - job_name: 'payment-service'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:3007']
+
+  - job_name: 'inventory-service'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['host.docker.internal:3004']

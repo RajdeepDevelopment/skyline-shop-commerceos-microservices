@@ -1,0 +1,25 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ecommerce-production
+
+commonLabels:
+  environment: production
+  managed-by: kustomize
+
+resources:
+  - ../../base/api-gateway.yml
+  - ../../base/auth-service.yml
+  - ../../base/cart-service.yml
+  - ../../base/order-service.yml
+  - ../../base/product-service.yml
+  - ../../base/inventory-service.yml
+  - ../../base/payment-service.yml
+  - ../../base/notification-service.yml
+  - ../../base/configmap.yml
+  - ../../base/secrets.yml
+  - ../../base/ingress.yml
+  - ../../base/namespace.yml
+
+patchesStrategicMerge:
+  - configmap-data.yml

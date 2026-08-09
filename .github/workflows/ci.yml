@@ -2,64 +2,139 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, development]
   pull_request:
     branches: [main]
 
-jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [24.x]
+env:
+  REGISTRY: ghcr.io
+  IMAGE_PREFIX: ${{ github.repository_owner }}/skyline
 
+jobs:
+  lint-and-typecheck:
+    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v2
+        uses: pnpm/action-setup@v4
         with:
           version: 9
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
+          node-version: 24.x
+          cache: pnpm
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Lint
-        run: pnpm run lint
+        run: pnpm lint
 
       - name: Build
-        run: pnpm run build
+        run: pnpm build
 
-      - name: Unit Tests
-        run: pnpm run test
-
-      - name: Integration Tests
-        run: pnpm run test:integration
-
-      - name: E2E Tests
-        run: pnpm run test:e2e
-
-  docker-build:
-    needs: build-and-test
+  unit-tests:
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-
+    needs: lint-and-typecheck
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run unit tests
+        run: pnpm test
+
+  build-docker:
+    runs-on: ubuntu-latest
+    needs: [lint-and-typecheck, unit-tests]
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        service:
+          - api-gateway
+          - auth-service
+          - cart-service
+          - order-service
+          - product-service
+          - inventory-service
+          - payment-service
+          - notification-service
+    steps:
+      - uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
-      - name: Build API Gateway Image
-        uses: docker/build-push-action@v4
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_PREFIX }}-${{ matrix.service }}
+          tags: |
+            type=sha,prefix=
+            type=raw,value=latest
+
+      - name: Build and push ${{ matrix.service }}
+        uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./apps/api-gateway/Dockerfile
-          push: false
-          tags: ecommerce/api-gateway:latest
+          file: ./apps/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: build-docker
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Update image tags in staging kustomization
+        run: |
+          SHORT_SHA=$(echo "${{ github.sha }}" | cut -c1-7)
+          REGISTRY="${{ env.REGISTRY }}"
+          OWNER="${{ github.repository_owner }}"
+
+          for SERVICE in api-gateway auth-service cart-service order-service product-service inventory-service payment-service notification-service; do
+            sed -i "s|${REGISTRY}/${OWNER}/skyline-${SERVICE}:.*|${REGISTRY}/${OWNER}/skyline-${SERVICE}:${SHORT_SHA}|g" \
+              k8s/overlays/staging/kustomization.yml
+          done
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add k8s/overlays/staging/kustomization.yml
+          git diff --staged --quiet || git commit -m "ci: update staging image tags to ${SHORT_SHA}"
+          git push

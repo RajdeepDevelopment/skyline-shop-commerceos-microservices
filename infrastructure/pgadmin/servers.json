@@ -1,0 +1,40 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "Auth DB (port 5433)",
+      "Group": "Skyline - Auth",
+      "Host": "auth_db",
+      "Port": 5432,
+      "MaintenanceDB": "auth_db",
+      "Username": "root",
+      "PassFile": "/var/lib/pgadmin/.pgpass"
+    },
+    "2": {
+      "Name": "Order DB (port 5434)",
+      "Group": "Skyline - Orders",
+      "Host": "order_db",
+      "Port": 5432,
+      "MaintenanceDB": "order_db",
+      "Username": "root",
+      "PassFile": "/var/lib/pgadmin/.pgpass"
+    },
+    "3": {
+      "Name": "Product DB Master (port 5435)",
+      "Group": "Skyline - Products",
+      "Host": "product_db_master",
+      "Port": 5432,
+      "MaintenanceDB": "product_db",
+      "Username": "root",
+      "PassFile": "/var/lib/pgadmin/.pgpass"
+    },
+    "4": {
+      "Name": "Product DB Replica (port 5436)",
+      "Group": "Skyline - Products",
+      "Host": "product_db_replica",
+      "Port": 5432,
+      "MaintenanceDB": "product_db",
+      "Username": "root",
+      "PassFile": "/var/lib/pgadmin/.pgpass"
+    }
+  }
+}

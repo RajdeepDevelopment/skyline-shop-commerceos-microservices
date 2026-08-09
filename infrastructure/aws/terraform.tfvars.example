@@ -1,0 +1,28 @@
+# Example terraform.tfvars — copy to terraform.tfvars and fill in your values.
+# NEVER commit terraform.tfvars (it may contain secrets).
+
+aws_region = "us-east-1"
+project    = "skyline-shop"
+environment = "staging"
+
+tags = {
+  project     = "skyline-shop"
+  environment = "staging"
+  managed-by  = "terraform"
+}
+
+# EKS
+eks_version                 = "1.31"
+node_group_instance_types   = ["m6i.large"]
+node_group_desired_size     = 2
+node_group_min_size         = 1
+node_group_max_size         = 6
+enable_cluster_autoscaler   = true
+
+# Managed data services — set to true to replace in-cluster Postgres/Redis/ES
+enable_rds          = false
+enable_elasticache  = false
+enable_opensearch   = false
+
+# IAM — GitHub repos allowed to assume the CI deploy role
+ci_github_repos = ["rajdeepsadhu/skyline-shop-commerceos-microservices"]

@@ -1,0 +1,184 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: otel-collector-config
+  namespace: ecommerce
+  labels:
+    app: otel-collector
+    component: observability
+    tier: observability
+data:
+  otel-collector-config.yml: |
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      prometheus:
+        config:
+          scrape_configs:
+            - job_name: "otel-collector"
+              scrape_interval: 15s
+              static_configs:
+                - targets: ["localhost:8888"]
+      zipkin:
+        endpoint: 0.0.0.0:9411
+    
+    processors:
+      batch:
+        send_batch_size: 1024
+        timeout: 1s
+        send_batch_max_size: 2048
+      memory_limiter:
+        check_interval: 1s
+        limit_mib: 512
+        spike_limit_mib: 128
+      attributes:
+        actions:
+          - key: environment
+            action: upsert
+            value: production
+          - key: service.namespace
+            action: upsert
+            value: skyline
+    
+    exporters:
+      otlp/jaeger:
+        endpoint: jaeger-collector:4317
+        tls:
+          insecure: true
+      prometheus:
+        endpoint: 0.0.0.0:8889
+        namespace: otel
+        const_labels:
+          service: otel-collector
+      logging:
+        verbosity: normal
+        sampling_initial: 5
+        sampling_thereafter: 200
+    
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+      pprof:
+        endpoint: 0.0.0.0:1777
+      zpages:
+        endpoint: 0.0.0.0:55679
+    
+    service:
+      extensions: [health_check, pprof, zpages]
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch, attributes]
+          exporters: [otlp/jaeger, logging]
+        metrics:
+          receivers: [otlp, prometheus]
+          processors: [memory_limiter, batch]
+          exporters: [prometheus]
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [logging]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: otel-collector
+  namespace: ecommerce
+  labels:
+    app: otel-collector
+    component: observability
+    tier: observability
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: otel-collector
+  template:
+    metadata:
+      labels:
+        app: otel-collector
+        component: observability
+        tier: observability
+    spec:
+      containers:
+        - name: otel-collector
+          image: otel/opentelemetry-collector-contrib:0.87.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - /otelcol-contrib
+            - --config=/etc/otel/otel-collector-config.yml
+          ports:
+            - containerPort: 4317
+              name: otlp-grpc
+            - containerPort: 4318
+              name: otlp-http
+            - containerPort: 8889
+              name: prometheus
+            - containerPort: 13133
+              name: healthcheck
+            - containerPort: 9411
+              name: zipkin
+          volumeMounts:
+            - name: otel-collector-config
+              mountPath: /etc/otel
+          resources:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 1Gi
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 15
+            periodSeconds: 15
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 13133
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 3
+            failureThreshold: 3
+      volumes:
+        - name: otel-collector-config
+          configMap:
+            name: otel-collector-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: otel-collector
+  namespace: ecommerce
+  labels:
+    app: otel-collector
+    component: observability
+    tier: observability
+spec:
+  type: ClusterIP
+  selector:
+    app: otel-collector
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      targetPort: 4317
+    - name: otlp-http
+      port: 4318
+      targetPort: 4318
+    - name: prometheus
+      port: 8889
+      targetPort: 8889
+    - name: healthcheck
+      port: 13133
+      targetPort: 13133
+    - name: zipkin
+      port: 9411
+      targetPort: 9411

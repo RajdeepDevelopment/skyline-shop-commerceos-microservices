@@ -1,0 +1,56 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: skyline-ecommerce
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Skyline Shop CommerceOS Microservices Platform
+
+  sourceRepos:
+    - https://github.com/rajdeepsadhu/skyline-shop-commerceos-microservices.git
+
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: ecommerce-production
+    - server: https://kubernetes.default.svc
+      namespace: ecommerce-staging
+
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+
+  namespaceResourceWhitelist:
+    - group: ""
+      kind: ConfigMap
+    - group: ""
+      kind: Secret
+    - group: ""
+      kind: Service
+    - group: ""
+      kind: ServiceAccount
+    - group: apps
+      kind: Deployment
+    - group: apps
+      kind: StatefulSet
+    - group: autoscaling
+      kind: HorizontalPodAutoscaler
+    - group: policy
+      kind: PodDisruptionBudget
+    - group: networking.k8s.io
+      kind: Ingress
+    - group: networking.k8s.io
+      kind: NetworkPolicy
+
+  orphanedResources:
+    warn: true
+
+  roles:
+    - name: ci-deploy
+      description: CI/CD pipeline deploy role
+      policies:
+        - p, proj:skyline-ecommerce:ci-deploy, applications, sync, skyline-ecommerce/*, allow
+        - p, proj:skyline-ecommerce:ci-deploy, applications, get, skyline-ecommerce/*, allow
+      groups:
+        - admins

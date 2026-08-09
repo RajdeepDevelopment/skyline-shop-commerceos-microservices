@@ -1,0 +1,13 @@
+<clickhouse>
+  <!-- Dev environment: allow the default user from any network.
+       The stock 24.8 image ships default-user.xml restricting the default
+       user to loopback, which blocks both host and container connections. -->
+  <users>
+    <default>
+      <password></password>
+      <networks>
+        <ip>::/0</ip>
+      </networks>
+    </default>
+  </users>
+</clickhouse>

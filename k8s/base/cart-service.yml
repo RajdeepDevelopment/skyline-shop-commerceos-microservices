@@ -1,0 +1,139 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cart-service
+  namespace: ecommerce
+  labels:
+    app: cart-service
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: cart-service
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: cart-service
+        version: v1
+    spec:
+      terminationGracePeriodSeconds: 30
+      securityContext:
+        runAsNonRoot: true
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - cart-service
+                topologyKey: kubernetes.io/hostname
+      containers:
+        - name: cart-service
+          image: ${REGISTRY}/skyline-cart-service:${TAG:-latest}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 50055
+              protocol: TCP
+              name: grpc
+            - containerPort: 3005
+              protocol: TCP
+              name: http
+          envFrom:
+            - configMapRef:
+                name: ecommerce-config
+            - secretRef:
+                name: ecommerce-secrets
+          env:
+            - name: CART_SERVICE_PORT
+              value: "3005"
+          resources:
+            requests:
+              cpu: 500m
+              memory: 256Mi
+            limits:
+              cpu: 1000m
+              memory: 512Mi
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3005
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3005
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+          securityContext:
+            readOnlyRootFilesystem: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cart-service
+  namespace: ecommerce
+  labels:
+    app: cart-service
+spec:
+  type: ClusterIP
+  selector:
+    app: cart-service
+  ports:
+    - port: 50055
+      targetPort: 50055
+      protocol: TCP
+      name: grpc
+    - port: 3005
+      targetPort: 3005
+      protocol: TCP
+      name: http
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: cart-service-hpa
+  namespace: ecommerce
+  labels:
+    app: cart-service
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: cart-service
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: cart-service-pdb
+  namespace: ecommerce
+  labels:
+    app: cart-service
+spec:
+  minAvailable: 1
+  selector:
+    matchLabels:
+      app: cart-service
