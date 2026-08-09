@@ -1,46 +1,40 @@
 import axios, { AxiosInstance, AxiosRequestConfig, AxiosResponse, AxiosError } from 'axios';
 
-// API base URLs for different services
-const API_BASE_URLS = {
-  default: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000',
-
-  auth: import.meta.env.VITE_AUTH_SERVICE_URL || 'http://localhost:3001',
-
-  cart: import.meta.env.VITE_CART_SERVICE_URL || 'http://localhost:3002',
-
-  product: import.meta.env.VITE_PRODUCT_SERVICE_URL || 'http://localhost:3003',
-
-  inventory: import.meta.env.VITE_INVENTORY_SERVICE_URL || 'http://localhost:3004',
-
-  order: import.meta.env.VITE_ORDER_SERVICE_URL || 'http://localhost:3006',
-
-  payment: import.meta.env.VITE_PAYMENT_SERVICE_URL || 'http://localhost:3007',
-};
+// All requests go through the API Gateway
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000';
 
 // Create axios instance with default configuration
 const createAxiosInstance = (baseURL: string): AxiosInstance => {
   const instance = axios.create({
     baseURL,
     timeout: 10000,
+    withCredentials: true,
     headers: {
       'Content-Type': 'application/json',
     },
   });
 
-  // Request interceptor to add auth token
-  instance.interceptors.request.use(
-    (config) => {
-      const token = localStorage.getItem('token');
-      if (token && config.headers) {
-        config.headers.Authorization = `Bearer ${token}`;
+  // Attach a stable anonymous identity + session id so the backend can track
+  // behaviour (recently viewed, recommendations) even for logged-out users.
+  instance.interceptors.request.use((config) => {
+    try {
+      let guestId = localStorage.getItem('skyline-guest-id');
+      if (!guestId) {
+        guestId = `guest-${crypto.randomUUID()}`;
+        localStorage.setItem('skyline-guest-id', guestId);
       }
-      return config;
-    },
-    (error) => {
-      // eslint-disable-next-line @typescript-eslint/prefer-promise-reject-errors
-      return Promise.reject(error);
-    },
-  );
+      config.headers['x-anonymous-id'] = guestId;
+      let sessionId = sessionStorage.getItem('skyline-session-id');
+      if (!sessionId) {
+        sessionId = `session-${crypto.randomUUID()}`;
+        sessionStorage.setItem('skyline-session-id', sessionId);
+      }
+      config.headers['x-session-id'] = sessionId;
+    } catch {
+      // ignore storage errors
+    }
+    return config;
+  });
 
   // Response interceptor for error handling
   instance.interceptors.response.use(
@@ -54,13 +48,6 @@ const createAxiosInstance = (baseURL: string): AxiosInstance => {
       return response;
     },
     (error: AxiosError) => {
-      // Handle common error scenarios
-      if (error.response?.status === 401) {
-        // Unauthorized - clear token and redirect to login
-        localStorage.removeItem('token');
-        window.location.href = '/login';
-      }
-
       // Handle network errors
       if (!error.response) {
         error.message = 'Network error. Please check your connection.';
@@ -73,20 +60,16 @@ const createAxiosInstance = (baseURL: string): AxiosInstance => {
   return instance;
 };
 
-// Create instances for different services
-export const apiClient = createAxiosInstance(API_BASE_URLS.default);
+// Single API client - all requests go through the gateway
+export const apiClient = createAxiosInstance(API_BASE_URL);
 
-export const authClient = createAxiosInstance(API_BASE_URLS.auth);
-
-export const cartClient = createAxiosInstance(API_BASE_URLS.cart);
-
-export const productClient = createAxiosInstance(API_BASE_URLS.product);
-
-export const inventoryClient = createAxiosInstance(API_BASE_URLS.inventory);
-
-export const orderClient = createAxiosInstance(API_BASE_URLS.order);
-
-export const paymentClient = createAxiosInstance(API_BASE_URLS.payment);
+// Service-specific clients all route through the gateway
+export const authClient = apiClient;
+export const cartClient = apiClient;
+export const productClient = apiClient;
+export const inventoryClient = apiClient;
+export const orderClient = apiClient;
+export const paymentClient = apiClient;
 
 // Generic API wrapper functions
 export const api = {

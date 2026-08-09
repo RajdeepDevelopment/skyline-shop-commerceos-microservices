@@ -1,44 +1,25 @@
-export interface OrderItem {
-  id: string;
-  productId: string;
-  product: {
-    id: string;
-    name: string;
-    price: number;
-    images: string[];
-  };
-  quantity: number;
-  price: number;
-}
+export type OrderStatus =
+  | 'PENDING'
+  | 'CONFIRMED'
+  | 'PROCESSING'
+  | 'SHIPPED'
+  | 'DELIVERED'
+  | 'CANCELLED';
 
-export interface ShippingAddress {
-  street: string;
-  city: string;
-  state: string;
-  zipCode: string;
-  country: string;
+export interface OrderItem {
+  productId: string;
+  quantity: number;
+  price: number | string;
 }
 
 export interface Order {
-  id: string;
+  orderId: string;
   userId: string;
+  status: OrderStatus;
   items: OrderItem[];
-  totalAmount: number;
-  status: 'pending' | 'confirmed' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  shippingAddress: ShippingAddress;
-  paymentMethod: string;
-  paymentStatus: 'pending' | 'paid' | 'failed' | 'refunded';
+  totalAmount: number | string;
   createdAt: string;
-  updatedAt: string;
-}
-
-export interface CreateOrderRequest {
-  items: {
-    productId: string;
-    quantity: number;
-  }[];
-  shippingAddress: ShippingAddress;
-  paymentMethod: string;
+  shippingAddress: string;
 }
 
 export interface OrderState {

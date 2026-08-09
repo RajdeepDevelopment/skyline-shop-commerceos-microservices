@@ -1,6 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { productService } from '../services/product.service';
-import { Product, Category, ProductFilter, ProductResponse } from '../types/product.types';
+import { Product, ProductFilter, ProductResponse } from '../types/product.types';
 
 export const useProducts = (filter: ProductFilter = {}) => {
   return useQuery<ProductResponse, Error>({
@@ -18,7 +18,7 @@ export const useProduct = (id: string) => {
 };
 
 export const useCategories = () => {
-  return useQuery<Category[], Error>({
+  return useQuery<string[], Error>({
     queryKey: ['categories'],
     queryFn: () => productService.getCategories(),
   });

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { AuthState, User } from '../types/auth.types';
 import { authService } from '../services/auth.service';
+import { crossTabSync } from '../../../lib/cross-tab-sync';
 
 interface AuthStore extends AuthState {
   login: (email: string, password: string) => Promise<void>;
@@ -13,14 +14,14 @@ interface AuthStore extends AuthState {
     phone?: string;
   }) => Promise<void>;
   logout: () => Promise<void>;
-  refreshToken: () => Promise<void>;
+  handleCrossTabLogout: () => void;
   setUser: (user: User) => void;
   clearError: () => void;
 }
 
 export const useAuthStore = create<AuthStore>()(
   persist(
-    (set, get) => ({
+    (set) => ({
       user: null,
       token: null,
       isAuthenticated: false,
@@ -33,11 +34,9 @@ export const useAuthStore = create<AuthStore>()(
           const response = await authService.login({ email, password });
           set({
             user: response.user,
-            token: response.accessToken,
             isAuthenticated: true,
             isLoading: false,
           });
-          localStorage.setItem('token', response.accessToken);
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Login failed';
           set({
@@ -51,14 +50,8 @@ export const useAuthStore = create<AuthStore>()(
       register: async (userData) => {
         set({ isLoading: true, error: null });
         try {
-          const response = await authService.register(userData);
-          set({
-            user: response.user,
-            token: response.accessToken,
-            isAuthenticated: true,
-            isLoading: false,
-          });
-          localStorage.setItem('token', response.accessToken);
+          await authService.register(userData);
+          set({ isLoading: false });
         } catch (error) {
           const message = error instanceof Error ? error.message : 'Registration failed';
           set({
@@ -70,14 +63,10 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       logout: async () => {
-        const state = get();
-        const token = state.token;
-        if (token) {
-          try {
-            await authService.logout();
-          } catch (error) {
-            console.error('Logout error:', error);
-          }
+        try {
+          await authService.logout();
+        } catch (error) {
+          console.error('Logout error:', error);
         }
         set({
           user: null,
@@ -85,34 +74,19 @@ export const useAuthStore = create<AuthStore>()(
           isAuthenticated: false,
           error: null,
         });
-        localStorage.removeItem('token');
-      },
-
-      refreshToken: async () => {
-        const state = get();
-        const token = state.token;
-        if (!token) return;
-
-        try {
-          const response = await authService.refreshToken(token);
-          set({
-            user: response.user,
-            token: response.accessToken,
-            isAuthenticated: true,
-          });
-          localStorage.setItem('token', response.accessToken);
-        } catch (error) {
-          set({
-            user: null,
-            token: null,
-            isAuthenticated: false,
-            error: error instanceof Error ? error.message : 'Token refresh failed',
-          });
-          localStorage.removeItem('token');
-        }
+        crossTabSync.broadcastLogout();
       },
 
       setUser: (user: User) => set({ user }),
+
+      handleCrossTabLogout: () => {
+        set({
+          user: null,
+          token: null,
+          isAuthenticated: false,
+          error: null,
+        });
+      },
 
       clearError: () => set({ error: null }),
     }),
@@ -120,7 +94,6 @@ export const useAuthStore = create<AuthStore>()(
       name: 'auth-storage',
       partialize: (state) => ({
         user: state.user,
-        token: state.token,
         isAuthenticated: state.isAuthenticated,
       }),
     },
