@@ -1,4 +1,4 @@
-import { Injectable, LoggerService } from '@nestjs/common';
+import { Injectable, LoggerService, Optional } from '@nestjs/common';
 import pino from 'pino';
 
 export interface LogContext {
@@ -11,7 +11,8 @@ export interface LogContext {
 export class AppLoggerService implements LoggerService {
   private readonly logger: pino.Logger;
 
-  constructor(service = 'ecommerce') {
+  constructor() {
+    const serviceName = process.env.SERVICE_NAME || 'ecommerce';
     this.logger = pino({
       level: process.env.LOG_LEVEL ?? 'info',
       transport:
@@ -21,7 +22,7 @@ export class AppLoggerService implements LoggerService {
       formatters: {
         level: (label: string) => ({ level: label }),
       },
-      base: { service },
+      base: { service: serviceName },
     });
   }
 
@@ -49,9 +50,6 @@ export class AppLoggerService implements LoggerService {
     this.logger.fatal({ context: optionalParams[0] }, message);
   }
 
-  /**
-   * Create a child logger with bound correlationId for request tracing.
-   */
   withCorrelationId(correlationId: string): pino.Logger {
     return this.logger.child({ correlationId });
   }

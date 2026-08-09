@@ -1,3 +1,5 @@
+export * from './behaviour-events';
+
 export enum OrderEvents {
   CREATED = 'order.created',
   CONFIRMED = 'order.confirmed',
@@ -8,6 +10,7 @@ export enum InventoryEvents {
   RESERVED = 'inventory.reserved',
   RELEASED = 'inventory.released',
   OUT_OF_STOCK = 'inventory.out_of_stock',
+  UPDATED = 'inventory.updated',
 }
 
 export enum PaymentEvents {
@@ -30,4 +33,11 @@ export class StockReservedEvent {
 export class PaymentSuccessEvent {
   orderId!: string;
   paymentId!: string;
+}
+
+export class InventoryUpdatedEvent {
+  sku!: string;
+  warehouseId!: string;
+  availableQuantity!: number;
+  reservedQuantity!: number;
 }

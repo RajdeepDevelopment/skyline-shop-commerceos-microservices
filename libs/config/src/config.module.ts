@@ -26,6 +26,12 @@ import * as Joi from 'joi';
         // Ports
         API_GATEWAY_PORT: Joi.number().default(3000),
         AUTH_SERVICE_PORT: Joi.number().default(3001),
+        // AWS (optional — used by @app/aws; unset creds fall back to Floci defaults)
+        AWS_ENDPOINT_URL: Joi.string().allow('').optional(),
+        AWS_ACCESS_KEY_ID: Joi.string().allow('').optional(),
+        AWS_SECRET_ACCESS_KEY: Joi.string().allow('').optional(),
+        AWS_DEFAULT_REGION: Joi.string().allow('').optional(),
+        AWS_STORAGE_MODE: Joi.string().valid('floci', 'local', 'aws').optional(),
       }),
       validationOptions: {
         allowUnknown: true,

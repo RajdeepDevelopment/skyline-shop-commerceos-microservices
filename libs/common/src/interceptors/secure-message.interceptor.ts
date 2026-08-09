@@ -20,7 +20,6 @@ export class SecureMessageInterceptor implements NestInterceptor {
       data.payload.includes('BEGIN PGP MESSAGE')
     ) {
       return from(this.encryptionService.decrypt(data.payload)).pipe(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         switchMap((decryptedData) => {
           // Replace the data in the context (though Nest makes this hard to do directly in the stream)
           // We pass the decrypted data to the next handler by wrapping it
