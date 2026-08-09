@@ -4,25 +4,36 @@ package product;
 
 service ProductService {
   rpc Create (CreateProductRequest) returns (ProductResponse) {}
-  rpc FindAll (Empty) returns (ProductListResponse) {}
+  rpc FindAll (FindAllRequest) returns (ProductListResponse) {}
   rpc FindOne (FindOneRequest) returns (ProductResponse) {}
   rpc Update (UpdateProductRequest) returns (ProductResponse) {}
   rpc Remove (FindOneRequest) returns (ProductResponse) {}
 }
 
-message Empty {}
+message FindAllRequest {
+  int32 page = 1;
+  int32 limit = 2;
+  string search = 3;
+  string category = 4;
+  double minPrice = 5;
+  double maxPrice = 6;
+  string sortBy = 7;
+  string sortOrder = 8;
+  double minRating = 9;
+  bool inStock = 10;
+}
 
 message CreateProductRequest {
   string sku = 1;
-  string name = 2;
+  string title = 2;
   string description = 3;
   double price = 4;
-  string categoryId = 5;
+  string category = 5;
 }
 
 message UpdateProductRequest {
   string id = 1;
-  string name = 2;
+  string title = 2;
   string description = 3;
   double price = 4;
 }
@@ -34,13 +45,28 @@ message FindOneRequest {
 message ProductResponse {
   string id = 1;
   string sku = 2;
-  string name = 3;
+  string title = 3;
   string description = 4;
   double price = 5;
   bool isActive = 6;
   string createdAt = 7;
+  string category = 8;
+  repeated string images = 9;
+  bool inStock = 10;
+  int32 stockCount = 11;
+  string brand = 12;
+  double rating = 13;
+  double discountPercentage = 14;
+  string thumbnail = 15;
+  repeated string tags = 16;
+  int32 inventoryQty = 17;
+  int32 inventoryReserved = 18;
 }
 
 message ProductListResponse {
   repeated ProductResponse products = 1;
+  int32 total = 2;
+  int32 page = 3;
+  int32 totalPages = 4;
+  int32 limit = 5;
 }
