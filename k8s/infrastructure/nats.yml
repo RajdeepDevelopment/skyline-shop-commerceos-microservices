@@ -70,7 +70,7 @@ spec:
             - -sd
             - /data
             - -m
-            - "8222"
+            - '8222'
           ports:
             - containerPort: 4222
               name: client

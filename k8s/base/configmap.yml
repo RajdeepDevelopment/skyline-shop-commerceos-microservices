@@ -4,28 +4,28 @@ metadata:
   name: ecommerce-config
   namespace: ecommerce
 data:
-  SERVICE_NAME: "skyline"
-  NODE_ENV: "production"
+  SERVICE_NAME: 'skyline'
+  NODE_ENV: 'production'
 
   # NATS Cluster (5 nodes)
-  NATS_URL: "nats://nats-headless:4222"
-  NATS_CLUSTER_URLS: "nats://nats-0.nats-headless:4222,nats://nats-1.nats-headless:4222,nats://nats-2.nats-headless:4222,nats://nats-3.nats-headless:4222,nats://nats-4.nats-headless:4222"
+  NATS_URL: 'nats://nats-headless:4222'
+  NATS_CLUSTER_URLS: 'nats://nats-0.nats-headless:4222,nats://nats-1.nats-headless:4222,nats://nats-2.nats-headless:4222,nats://nats-3.nats-headless:4222,nats://nats-4.nats-headless:4222'
 
   # gRPC Service URLs
-  GRPC_AUTH_URL: "auth-service:50051"
-  GRPC_ORDER_URL: "order-service:50056"
-  GRPC_PRODUCT_URL: "product-service:50053"
-  GRPC_INVENTORY_URL: "inventory-service:50054"
-  GRPC_CART_URL: "cart-service:50055"
-  GRPC_PAYMENT_URL: "payment-service:50057"
-  GRPC_NOTIFICATION_URL: "notification-service:50058"
-  GRPC_ANALYTICS_URL: "analytics-service:50059"
+  GRPC_AUTH_URL: 'auth-service:50051'
+  GRPC_ORDER_URL: 'order-service:50056'
+  GRPC_PRODUCT_URL: 'product-service:50053'
+  GRPC_INVENTORY_URL: 'inventory-service:50054'
+  GRPC_CART_URL: 'cart-service:50055'
+  GRPC_PAYMENT_URL: 'payment-service:50057'
+  GRPC_NOTIFICATION_URL: 'notification-service:50058'
+  GRPC_ANALYTICS_URL: 'analytics-service:50059'
 
   # HTTP proxy Service URLs (api-gateway)
-  CART_SERVICE_URL: "http://cart-service:3005"
-  PRODUCT_SERVICE_URL: "http://product-service:3003"
-  INVENTORY_SERVICE_URL: "http://inventory-service:3004"
-  PAYMENT_SERVICE_URL: "http://payment-service:3007"
+  CART_SERVICE_URL: 'http://cart-service:3005'
+  PRODUCT_SERVICE_URL: 'http://product-service:3003'
+  INVENTORY_SERVICE_URL: 'http://inventory-service:3004'
+  PAYMENT_SERVICE_URL: 'http://payment-service:3007'
 
-  CORS_ORIGINS: "http://localhost:8080,http://localhost:5173,https://yourdomain.com"
-  OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector:4318"
+  CORS_ORIGINS: 'http://localhost:8080,http://localhost:5173,https://yourdomain.com'
+  OTEL_EXPORTER_OTLP_ENDPOINT: 'http://otel-collector:4318'

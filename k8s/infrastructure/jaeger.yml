@@ -47,15 +47,15 @@ spec:
               name: admin
           env:
             - name: COLLECTOR_OTLP_ENABLED
-              value: "true"
+              value: 'true'
             - name: SPAN_STORAGE_TYPE
-              value: "memory"
+              value: 'memory'
             - name: SAMPLER_TYPE
-              value: "const"
+              value: 'const'
             - name: SAMPLER_PARAM
-              value: "1"
+              value: '1'
             - name: QUERY_BASE_PATH
-              value: "/"
+              value: '/'
           resources:
             requests:
               cpu: 250m

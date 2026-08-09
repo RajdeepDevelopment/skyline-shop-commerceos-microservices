@@ -132,7 +132,6 @@ services:
     volumes:
       - availability_db_data:/var/lib/postgresql/data
 
-
   product_db_master:
     <<: *postgres-base
     container_name: ecommerce_product_db_master
@@ -407,7 +406,7 @@ services:
     ports:
       - '6441:6432'
     environment:
-      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s0:5432/auth_s0,postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s0_replica:5432/auth_s0"
+      DATABASE_URLS: 'postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s0:5432/auth_s0,postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s0_replica:5432/auth_s0'
       POOL_MODE: transaction
       DEFAULT_POOL_SIZE: 25
       MAX_CLIENT_CONN: 500
@@ -421,7 +420,7 @@ services:
     ports:
       - '6442:6432'
     environment:
-      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s1:5432/auth_s1,postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s1_replica:5432/auth_s1"
+      DATABASE_URLS: 'postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s1:5432/auth_s1,postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s1_replica:5432/auth_s1'
       POOL_MODE: transaction
       DEFAULT_POOL_SIZE: 25
       MAX_CLIENT_CONN: 500
@@ -435,7 +434,7 @@ services:
     ports:
       - '6451:6432'
     environment:
-      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@order_s0:5432/order_s0,postgresql://root:${POSTGRES_PASSWORD:-password}@order_s0_replica:5432/order_s0"
+      DATABASE_URLS: 'postgresql://root:${POSTGRES_PASSWORD:-password}@order_s0:5432/order_s0,postgresql://root:${POSTGRES_PASSWORD:-password}@order_s0_replica:5432/order_s0'
       POOL_MODE: transaction
       DEFAULT_POOL_SIZE: 25
       MAX_CLIENT_CONN: 500
@@ -449,7 +448,7 @@ services:
     ports:
       - '6452:6432'
     environment:
-      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@order_s1:5432/order_s1,postgresql://root:${POSTGRES_PASSWORD:-password}@order_s1_replica:5432/order_s1"
+      DATABASE_URLS: 'postgresql://root:${POSTGRES_PASSWORD:-password}@order_s1:5432/order_s1,postgresql://root:${POSTGRES_PASSWORD:-password}@order_s1_replica:5432/order_s1'
       POOL_MODE: transaction
       DEFAULT_POOL_SIZE: 25
       MAX_CLIENT_CONN: 500
@@ -463,7 +462,7 @@ services:
     ports:
       - '6453:6432'
     environment:
-      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@order_s2:5432/order_s2,postgresql://root:${POSTGRES_PASSWORD:-password}@order_s2_replica:5432/order_s2"
+      DATABASE_URLS: 'postgresql://root:${POSTGRES_PASSWORD:-password}@order_s2:5432/order_s2,postgresql://root:${POSTGRES_PASSWORD:-password}@order_s2_replica:5432/order_s2'
       POOL_MODE: transaction
       DEFAULT_POOL_SIZE: 25
       MAX_CLIENT_CONN: 500
@@ -477,7 +476,7 @@ services:
     ports:
       - '6454:6432'
     environment:
-      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@order_s3:5432/order_s3,postgresql://root:${POSTGRES_PASSWORD:-password}@order_s3_replica:5432/order_s3"
+      DATABASE_URLS: 'postgresql://root:${POSTGRES_PASSWORD:-password}@order_s3:5432/order_s3,postgresql://root:${POSTGRES_PASSWORD:-password}@order_s3_replica:5432/order_s3'
       POOL_MODE: transaction
       DEFAULT_POOL_SIZE: 25
       MAX_CLIENT_CONN: 500
@@ -491,7 +490,7 @@ services:
     ports:
       - '6461:6432'
     environment:
-      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0:5432/product_s0,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0_replica:5432/product_s0"
+      DATABASE_URLS: 'postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0:5432/product_s0,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0_replica:5432/product_s0'
       POOL_MODE: transaction
       DEFAULT_POOL_SIZE: 30
       MAX_CLIENT_CONN: 500
@@ -505,7 +504,7 @@ services:
     ports:
       - '6462:6432'
     environment:
-      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1:5432/product_s1,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1_replica:5432/product_s1"
+      DATABASE_URLS: 'postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1:5432/product_s1,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1_replica:5432/product_s1'
       POOL_MODE: transaction
       DEFAULT_POOL_SIZE: 30
       MAX_CLIENT_CONN: 500
@@ -519,7 +518,7 @@ services:
     ports:
       - '6463:6432'
     environment:
-      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2:5432/product_s2,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2_replica:5432/product_s2"
+      DATABASE_URLS: 'postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2:5432/product_s2,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2_replica:5432/product_s2'
       POOL_MODE: transaction
       DEFAULT_POOL_SIZE: 30
       MAX_CLIENT_CONN: 500
@@ -533,7 +532,7 @@ services:
     ports:
       - '6464:6432'
     environment:
-      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3:5432/product_s3,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3_replica:5432/product_s3"
+      DATABASE_URLS: 'postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3:5432/product_s3,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3_replica:5432/product_s3'
       POOL_MODE: transaction
       DEFAULT_POOL_SIZE: 30
       MAX_CLIENT_CONN: 500
@@ -640,8 +639,8 @@ services:
     container_name: ecommerce_clickhouse
     restart: unless-stopped
     ports:
-      - '8123:8123'   # HTTP interface
-      - '9000:9000'   # Native interface
+      - '8123:8123' # HTTP interface
+      - '9000:9000' # Native interface
     ulimits:
       nofile:
         soft: 262144
@@ -1060,7 +1059,6 @@ services:
       retries: 5
       start_period: 20s
 
-
   # ---------------------------------------------------------------------------
   # Web shop — React/Vite SPA served by nginx (http://localhost:8080)
   # ---------------------------------------------------------------------------
@@ -1092,9 +1090,9 @@ services:
     container_name: ecommerce_otel_collector
     restart: unless-stopped
     ports:
-      - '4317:4317'   # OTLP gRPC
-      - '4318:4318'   # OTLP HTTP
-      - '8889:8889'   # Prometheus exporter
+      - '4317:4317' # OTLP gRPC
+      - '4318:4318' # OTLP HTTP
+      - '8889:8889' # Prometheus exporter
     volumes:
       - ./infrastructure/otel/otel-collector-config.yml:/etc/otelcol-contrib/config.yaml:ro
     depends_on:
@@ -1108,9 +1106,9 @@ services:
     container_name: ecommerce_jaeger
     restart: unless-stopped
     ports:
-      - '16686:16686'  # Jaeger UI
-      - '14250:14250'  # gRPC for collector
-      - '14268:14268'  # HTTP for collector
+      - '16686:16686' # Jaeger UI
+      - '14250:14250' # gRPC for collector
+      - '14268:14268' # HTTP for collector
     environment:
       - COLLECTOR_OTLP_ENABLED=true
     volumes:

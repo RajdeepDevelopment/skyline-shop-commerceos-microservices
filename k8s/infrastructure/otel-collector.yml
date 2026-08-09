@@ -25,7 +25,7 @@ data:
                 - targets: ["localhost:8888"]
       zipkin:
         endpoint: 0.0.0.0:9411
-    
+
     processors:
       batch:
         send_batch_size: 1024
@@ -43,7 +43,7 @@ data:
           - key: service.namespace
             action: upsert
             value: skyline
-    
+
     exporters:
       otlp/jaeger:
         endpoint: jaeger-collector:4317
@@ -58,7 +58,7 @@ data:
         verbosity: normal
         sampling_initial: 5
         sampling_thereafter: 200
-    
+
     extensions:
       health_check:
         endpoint: 0.0.0.0:13133
@@ -66,7 +66,7 @@ data:
         endpoint: 0.0.0.0:1777
       zpages:
         endpoint: 0.0.0.0:55679
-    
+
     service:
       extensions: [health_check, pprof, zpages]
       pipelines:

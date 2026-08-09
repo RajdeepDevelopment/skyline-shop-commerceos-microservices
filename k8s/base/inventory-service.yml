@@ -55,7 +55,7 @@ spec:
                 name: ecommerce-secrets
           env:
             - name: INVENTORY_SERVICE_PORT
-              value: "3004"
+              value: '3004'
           resources:
             requests:
               cpu: 500m

@@ -51,7 +51,7 @@ spec:
                 name: ecommerce-secrets
           env:
             - name: API_GATEWAY_PORT
-              value: "3000"
+              value: '3000'
           resources:
             requests:
               cpu: 500m

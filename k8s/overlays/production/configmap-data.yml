@@ -14,50 +14,50 @@ metadata:
   namespace: ecommerce
 data:
   # ElastiCache Redis (single node)
-  REDIS_HOST: "skyline-shop-production-redis.xxxxxx.ng.0001.use1.cache.amazonaws.com"
-  REDIS_PORT: "6379"
-  REDIS_CLUSTER_MODE: "false"
-  REDIS_CLUSTER_NODES: "skyline-shop-production-redis.xxxxxx.ng.0001.use1.cache.amazonaws.com:6379"
+  REDIS_HOST: 'skyline-shop-production-redis.xxxxxx.ng.0001.use1.cache.amazonaws.com'
+  REDIS_PORT: '6379'
+  REDIS_CLUSTER_MODE: 'false'
+  REDIS_CLUSTER_NODES: 'skyline-shop-production-redis.xxxxxx.ng.0001.use1.cache.amazonaws.com:6379'
 
   # OpenSearch (managed domain)
-  ELASTICSEARCH_URL: "https://skyline-shop-production.xxxxxx.us-east-1.es.amazonaws.com"
-  ELASTICSEARCH_NODES: "https://skyline-shop-production.xxxxxx.us-east-1.es.amazonaws.com"
-  ES_NUMBER_OF_SHARDS: "6"
-  ES_NUMBER_OF_REPLICAS: "2"
-  SEARCH_BACKEND: "opensearch"
+  ELASTICSEARCH_URL: 'https://skyline-shop-production.xxxxxx.us-east-1.es.amazonaws.com'
+  ELASTICSEARCH_NODES: 'https://skyline-shop-production.xxxxxx.us-east-1.es.amazonaws.com'
+  ES_NUMBER_OF_SHARDS: '6'
+  ES_NUMBER_OF_REPLICAS: '2'
+  SEARCH_BACKEND: 'opensearch'
 
   # Auth Database Shards → RDS (all shard DBs live on the single RDS instance)
-  AUTH_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/auth?schema=public"
-  AUTH_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/auth?schema=public"
-  AUTH_S0_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/auth_s0?schema=public"
-  AUTH_S0_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/auth_s0?schema=public"
-  AUTH_S1_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/auth_s1?schema=public"
-  AUTH_S1_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/auth_s1?schema=public"
+  AUTH_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/auth?schema=public'
+  AUTH_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/auth?schema=public'
+  AUTH_S0_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/auth_s0?schema=public'
+  AUTH_S0_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/auth_s0?schema=public'
+  AUTH_S1_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/auth_s1?schema=public'
+  AUTH_S1_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/auth_s1?schema=public'
 
   # Order Database Shards (4 shards → RDS)
-  ORDER_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders?schema=public"
-  ORDER_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders?schema=public"
-  ORDER_S0_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s0?schema=public"
-  ORDER_S0_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s0?schema=public"
-  ORDER_S1_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s1?schema=public"
-  ORDER_S1_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s1?schema=public"
-  ORDER_S2_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s2?schema=public"
-  ORDER_S2_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s2?schema=public"
-  ORDER_S3_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s3?schema=public"
-  ORDER_S3_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s3?schema=public"
+  ORDER_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders?schema=public'
+  ORDER_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders?schema=public'
+  ORDER_S0_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s0?schema=public'
+  ORDER_S0_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s0?schema=public'
+  ORDER_S1_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s1?schema=public'
+  ORDER_S1_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s1?schema=public'
+  ORDER_S2_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s2?schema=public'
+  ORDER_S2_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s2?schema=public'
+  ORDER_S3_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s3?schema=public'
+  ORDER_S3_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/orders_s3?schema=public'
 
   # Product Database Shards (4 shards → RDS)
-  PRODUCT_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products?schema=public"
-  PRODUCT_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products?schema=public"
-  PRODUCT_S0_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s0?schema=public"
-  PRODUCT_S0_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s0?schema=public"
-  PRODUCT_S1_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s1?schema=public"
-  PRODUCT_S1_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s1?schema=public"
-  PRODUCT_S2_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s2?schema=public"
-  PRODUCT_S2_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s2?schema=public"
-  PRODUCT_S3_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s3?schema=public"
-  PRODUCT_S3_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s3?schema=public"
+  PRODUCT_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products?schema=public'
+  PRODUCT_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products?schema=public'
+  PRODUCT_S0_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s0?schema=public'
+  PRODUCT_S0_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s0?schema=public'
+  PRODUCT_S1_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s1?schema=public'
+  PRODUCT_S1_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s1?schema=public'
+  PRODUCT_S2_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s2?schema=public'
+  PRODUCT_S2_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s2?schema=public'
+  PRODUCT_S3_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s3?schema=public'
+  PRODUCT_S3_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products_s3?schema=public'
 
   # Cart service → product DB (cart tables live in the products database)
-  CART_DATABASE_WRITE_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products?schema=public"
-  CART_DATABASE_READ_URL: "postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products?schema=public"
+  CART_DATABASE_WRITE_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products?schema=public'
+  CART_DATABASE_READ_URL: 'postgresql://__RDS_USER__:__RDS_PASSWORD__@skyline-shop-production-postgres.xxxxxx.us-east-1.rds.amazonaws.com:5432/products?schema=public'

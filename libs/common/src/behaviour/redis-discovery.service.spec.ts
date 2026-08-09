@@ -80,7 +80,10 @@ describe('RedisDiscoveryService', () => {
         'p1',
       );
       expect(mockPipeline.zincrby).toHaveBeenCalledWith('discovery:product-views', 1, 'p1');
-      expect(mockPipeline.expire).toHaveBeenCalledWith('discovery:product-views', expect.any(Number));
+      expect(mockPipeline.expire).toHaveBeenCalledWith(
+        'discovery:product-views',
+        expect.any(Number),
+      );
       expect(mockClient.expire).toHaveBeenCalledWith(
         `discovery:events:PRODUCT_VIEW:${RedisDiscoveryService.dateKey(new Date('2026-08-09T10:00:00.000Z'))}`,
         expect.any(Number),
@@ -95,9 +98,20 @@ describe('RedisDiscoveryService', () => {
       };
       await service.trackEvent(event, 'user:abc');
 
-      expect(mockPipeline.lrem).toHaveBeenCalledWith('discovery:user:user:abc:recent-viewed', 0, 'p9');
-      expect(mockPipeline.lpush).toHaveBeenCalledWith('discovery:user:user:abc:recent-viewed', 'p9');
-      expect(mockPipeline.ltrim).toHaveBeenCalledWith('discovery:user:user:abc:recent-viewed', 0, 19);
+      expect(mockPipeline.lrem).toHaveBeenCalledWith(
+        'discovery:user:user:abc:recent-viewed',
+        0,
+        'p9',
+      );
+      expect(mockPipeline.lpush).toHaveBeenCalledWith(
+        'discovery:user:user:abc:recent-viewed',
+        'p9',
+      );
+      expect(mockPipeline.ltrim).toHaveBeenCalledWith(
+        'discovery:user:user:abc:recent-viewed',
+        0,
+        19,
+      );
     });
 
     it('records per-user signal lists per event type', async () => {

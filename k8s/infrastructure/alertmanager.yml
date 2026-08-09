@@ -16,10 +16,10 @@ data:
       smtp_auth_username: "alertmanager@skyline.shop"
       smtp_auth_password: ""
       smtp_require_tls: true
-    
+
     templates:
       - "/etc/alertmanager/templates/*.tmpl"
-    
+
     route:
       group_by: ["alertname", "namespace", "service"]
       group_wait: 30s
@@ -45,7 +45,7 @@ data:
           group_wait: 30s
           group_interval: 5m
           repeat_interval: 8h
-    
+
     receivers:
       - name: "default-receiver"
         email_configs:
@@ -67,7 +67,7 @@ data:
             send_resolved: true
             headers:
               Subject: "[SKYLINE-WARNING] {{ .GroupLabels.alertname }}"
-    
+
     inhibit_rules:
       - source_match:
           severity: critical
@@ -104,10 +104,10 @@ spec:
           image: prom/alertmanager:v0.26.0
           imagePullPolicy: IfNotPresent
           args:
-            - "--config.file=/etc/alertmanager/alertmanager.yml"
-            - "--storage.path=/alertmanager"
-            - "--web.external-url=http://alertmanager.ecommerce.svc.cluster.local:9093"
-            - "--cluster.listen-address=0.0.0.0:9094"
+            - '--config.file=/etc/alertmanager/alertmanager.yml'
+            - '--storage.path=/alertmanager'
+            - '--web.external-url=http://alertmanager.ecommerce.svc.cluster.local:9093'
+            - '--cluster.listen-address=0.0.0.0:9094'
           ports:
             - containerPort: 9093
               name: http

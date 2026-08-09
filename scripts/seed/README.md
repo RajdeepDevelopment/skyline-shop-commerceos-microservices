@@ -3,12 +3,12 @@
 Scripts for seeding and verifying the **sharded** product databases + Elasticsearch,
 for both the floci k3s cluster (`k8s`) and the local docker-compose setup (`compose`).
 
-| Script | Purpose |
-| --- | --- |
-| [`seed-db.ts`](seed-db.ts) | Bulk seed N products directly into the per-shard Postgres DBs **and** Elasticsearch (fast, `COPY` + ES bulk). |
+| Script                       | Purpose                                                                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| [`seed-db.ts`](seed-db.ts)   | Bulk seed N products directly into the per-shard Postgres DBs **and** Elasticsearch (fast, `COPY` + ES bulk).             |
 | [`seed-api.ts`](seed-api.ts) | Seed products through the REST API (`POST /api/v1/products`, JWT auth). PG only — run `sync-es.ts` afterwards for search. |
-| [`sync-es.ts`](sync-es.ts) | Rebuild the ES `products` index from the shard DBs (use after `seed-api` or manual DB changes). |
-| [`verify.ts`](verify.ts) | Check per-shard row counts, ES doc count, SKU↔shard hash consistency, and (with `--api`) REST totals. |
+| [`sync-es.ts`](sync-es.ts)   | Rebuild the ES `products` index from the shard DBs (use after `seed-api` or manual DB changes).                           |
+| [`verify.ts`](verify.ts)     | Check per-shard row counts, ES doc count, SKU↔shard hash consistency, and (with `--api`) REST totals.                     |
 
 Shared helpers live in [`lib/`](lib) — crucially [`lib/sku-hash.ts`](lib/sku-hash.ts) is
 byte-for-byte the same hash as `DatabaseService` in `libs/database/src/database.service.ts`,
@@ -16,10 +16,10 @@ so seeded rows always land on the shard the application reads from.
 
 `SEED_TARGET` selects the endpoint layout (both targets use the same scripts):
 
-| Target | DB access | ES | API (seed-api / verify --api) |
-| --- | --- | --- | --- |
-| `k8s` (default) | `kubectl -n ecommerce port-forward svc/pgbouncer 6432:6432` → shard DBs `products_s0..s3` | `kubectl -n ecommerce port-forward svc/elasticsearch 9200:9200` | `kubectl -n ecommerce port-forward svc/api-gateway 3300:3000` |
-| `compose` | `docker compose up -d` → per-shard pgbouncers `localhost:6461..6464` (DBs `product_s0..s3`) | `localhost:9200` (es1) | api-gateway on host at `localhost:3000` (or nginx `localhost:80`) |
+| Target          | DB access                                                                                   | ES                                                              | API (seed-api / verify --api)                                     |
+| --------------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------------------- | ----------------------------------------------------------------- |
+| `k8s` (default) | `kubectl -n ecommerce port-forward svc/pgbouncer 6432:6432` → shard DBs `products_s0..s3`   | `kubectl -n ecommerce port-forward svc/elasticsearch 9200:9200` | `kubectl -n ecommerce port-forward svc/api-gateway 3300:3000`     |
+| `compose`       | `docker compose up -d` → per-shard pgbouncers `localhost:6461..6464` (DBs `product_s0..s3`) | `localhost:9200` (es1)                                          | api-gateway on host at `localhost:3000` (or nginx `localhost:80`) |
 
 ---
 
@@ -44,15 +44,16 @@ NODE_OPTIONS="--max-old-space-size=8192" \
 ```
 
 ### Env vars (all scripts)
-| Var | Default | Meaning |
-| --- | --- | --- |
-| `SEED_TARGET` | `k8s` | `k8s` or `compose` endpoint layout |
-| `SEED_PRODUCT_COUNT` | `10000` (db) / `200` (api) | number of products |
-| `SEED_SHARD_COUNT` | `4` | number of product shards; `1` = single DB |
-| `SEED_SHARD_URLS` | — | explicit comma-separated PG URLs (overrides target) |
-| `PRODUCT_DATABASE_WRITE_URL` | k8s: `postgresql://root:password@localhost:6432/products` | base URL; k8s shards derived as `/products_s{n}` |
-| `ELASTICSEARCH_URL` | `http://localhost:9200` | ES endpoint |
-| `SEED_RESET` | `true` | `true` truncates PG + recreates the ES index |
+
+| Var                          | Default                                                   | Meaning                                             |
+| ---------------------------- | --------------------------------------------------------- | --------------------------------------------------- |
+| `SEED_TARGET`                | `k8s`                                                     | `k8s` or `compose` endpoint layout                  |
+| `SEED_PRODUCT_COUNT`         | `10000` (db) / `200` (api)                                | number of products                                  |
+| `SEED_SHARD_COUNT`           | `4`                                                       | number of product shards; `1` = single DB           |
+| `SEED_SHARD_URLS`            | —                                                         | explicit comma-separated PG URLs (overrides target) |
+| `PRODUCT_DATABASE_WRITE_URL` | k8s: `postgresql://root:password@localhost:6432/products` | base URL; k8s shards derived as `/products_s{n}`    |
+| `ELASTICSEARCH_URL`          | `http://localhost:9200`                                   | ES endpoint                                         |
+| `SEED_RESET`                 | `true`                                                    | `true` truncates PG + recreates the ES index        |
 
 ## 2. Seed through the REST API
 

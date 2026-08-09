@@ -55,7 +55,7 @@ spec:
                 name: ecommerce-secrets
           env:
             - name: ORDER_SERVICE_PORT
-              value: "3006"
+              value: '3006'
           resources:
             requests:
               cpu: 500m

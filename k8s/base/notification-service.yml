@@ -52,7 +52,7 @@ spec:
                 name: ecommerce-secrets
           env:
             - name: port
-              value: "3008"
+              value: '3008'
           resources:
             requests:
               cpu: 500m

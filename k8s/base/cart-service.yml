@@ -55,7 +55,7 @@ spec:
                 name: ecommerce-secrets
           env:
             - name: CART_SERVICE_PORT
-              value: "3005"
+              value: '3005'
           resources:
             requests:
               cpu: 500m

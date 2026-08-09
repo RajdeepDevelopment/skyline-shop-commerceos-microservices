@@ -12,20 +12,45 @@ describe('AvailabilityServiceService', () => {
   let eventBus: any;
 
   const warehouse = { id: 'WH_BLR_01', name: 'BLR_WH_01', status: 'active' };
-  const inventory = { sku: 'P-0001-V000001', warehouseId: 'WH_BLR_01', availableQuantity: 10, reservedQuantity: 1 };
-  const serviceability = [{ pincode: '560103', warehouseId: 'WH_BLR_01', priority: 1, deliveryDays: 1, active: true, warehouse }];
+  const inventory = {
+    sku: 'P-0001-V000001',
+    warehouseId: 'WH_BLR_01',
+    availableQuantity: 10,
+    reservedQuantity: 1,
+  };
+  const serviceability = [
+    {
+      pincode: '560103',
+      warehouseId: 'WH_BLR_01',
+      priority: 1,
+      deliveryDays: 1,
+      active: true,
+      warehouse,
+    },
+  ];
 
   beforeEach(async () => {
     prisma = {
       pincodeServiceability: { findMany: jest.fn().mockResolvedValue(serviceability) },
       warehouseInventory: {
         findUnique: jest.fn().mockResolvedValue(inventory),
-        update: jest.fn().mockResolvedValue({ ...inventory, reservedQuantity: inventory.reservedQuantity + 1 }),
+        update: jest
+          .fn()
+          .mockResolvedValue({ ...inventory, reservedQuantity: inventory.reservedQuantity + 1 }),
       },
       inventoryReservation: {
         findUnique: jest.fn(),
-        create: jest.fn().mockResolvedValue({ id: 'res-1', status: 'RESERVED', expiryTime: new Date(), quantity: 1 }),
-        update: jest.fn().mockResolvedValue({ id: 'res-1', status: 'CONFIRMED', expiryTime: new Date() }),
+        create: jest
+          .fn()
+          .mockResolvedValue({
+            id: 'res-1',
+            status: 'RESERVED',
+            expiryTime: new Date(),
+            quantity: 1,
+          }),
+        update: jest
+          .fn()
+          .mockResolvedValue({ id: 'res-1', status: 'CONFIRMED', expiryTime: new Date() }),
       },
       warehouse: { findUnique: jest.fn().mockResolvedValue({ name: 'BLR_WH_01' }) },
       $transaction: jest.fn((ops) => Promise.all(ops)),
