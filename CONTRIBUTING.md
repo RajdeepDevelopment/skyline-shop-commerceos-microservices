@@ -7,7 +7,7 @@ Thank you for your interest in contributing! This project is designed not just a
 ## 🎓 Learning with Us
 
 If you are here to learn:
-- **Analyze the Patterns**: Look into how we handle the [Saga Choreography](./PROJECT_WIKI.md#🛒-distributed-checkout-saga-choreography).
+- **Analyze the Patterns**: Look into how we handle the [Saga Choreography](./docs/PROJECT_WIKI.md#🛒-distributed-checkout-saga-choreography).
 - **Read the ADRs**: Every major decision is documented in the [ADR Directory](./docs/adr/).
 - **Ask Questions**: Feel free to open an issue to ask "Why was this done this way?"—we love technical discussions!
 

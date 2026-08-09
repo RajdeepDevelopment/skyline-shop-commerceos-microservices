@@ -12,8 +12,8 @@ The Product Service manages the catalog, categories, and real-time search capabi
 
 ## 🔗 Inner Documentation
 
-- **[Architecture & Flow](./docs/architecture.md)** - Catalog management and caching.
-- **[Database Design](./docs/database-design.md)** - Product/Category schemas.
+- **[Architecture & Flow](./../../docs/architecture/README.md)** - Catalog management and caching.
+- **[Database Design](./../../docs/architecture/database-architecture.md)** - Product/Category schemas.
 
 ## 🔄 Core Flow: Product Retrieval (Cache Aside)
 

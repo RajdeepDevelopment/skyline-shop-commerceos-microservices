@@ -11,7 +11,7 @@ Event-driven service that handles all outgoing communication (Email, SMS, Push).
 
 ## 🔗 Inner Documentation
 
-- **[Architecture & Flow](./docs/architecture.md)** - Event consumers and templates.
+- **[Architecture & Flow](./../../docs/architecture/README.md)** - Event consumers and templates.
 
 ## 🔄 Core Flow: Event-Driven Notification
 

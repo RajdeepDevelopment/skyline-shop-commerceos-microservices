@@ -12,9 +12,9 @@ The Cart Service manages transient user shopping sessions. It is designed for hi
 
 ## 🔗 Inner Documentation
 
-- **[Architecture & Flow](./docs/architecture.md)** - Logic and Sequence Diagrams.
-- **[Database Design](./docs/database-design.md)** - Redis schema and key structures.
-- **[API Contracts](./docs/api-contracts.md)** - Request/Response schemas.
+- **[Architecture & Flow](./../../docs/architecture/README.md)** - Logic and Sequence Diagrams.
+- **[Database Design](./../../docs/architecture/database-architecture.md)** - Redis schema and key structures.
+- **[API Contracts](./../../docs/services/cart-service.md)** - Request/Response schemas.
 
 ## 🔄 Core Flow: Add to Cart
 

@@ -12,8 +12,8 @@ The API Gateway is the single entry point for all client requests. It acts as a 
 
 ## 🔗 Inner Documentation
 
-- **[Architecture & Routing](./docs/architecture.md)** - Gateway patterns and routing tables.
-- **[Security & Rate Limiting](./docs/security.md)** - Protection strategies.
+- **[Architecture & Routing](./../../docs/architecture/README.md)** - Gateway patterns and routing tables.
+- **[Security & Rate Limiting](./../../docs/architecture/security-architecture.md)** - Protection strategies.
 
 ## 🔄 Core Flow: Request Routing
 

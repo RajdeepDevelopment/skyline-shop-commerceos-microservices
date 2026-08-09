@@ -7,7 +7,7 @@ A comprehensive reference for the architectural terms, patterns, and technologie
 ### A
 
 - **API Gateway**: A server that acts as an API front-end, receives API requests, enforces throttling and security policies, passes requests to the back-end service, and then passes the response back to the requester.
-- **Argon2id**: The recommended password hashing algorithm (winner of the Password Hashing Competition) used in this platform for identity protection.
+- **bcrypt**: The password hashing algorithm used in this platform for identity protection — a slow, computationally expensive hash designed specifically to resist offline brute-force attacks.
 
 ### C
 

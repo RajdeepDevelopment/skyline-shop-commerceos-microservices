@@ -11,8 +11,8 @@ Handles financial transactions and integrates with external payment gateways.
 
 ## 🔗 Inner Documentation
 
-- **[Architecture & Security](./docs/architecture.md)** - Idempotency and Gateway integration.
-- **[Database Design](./docs/database-design.md)** - Transaction logs.
+- **[Architecture & Security](./../../docs/architecture/README.md)** - Idempotency and Gateway integration.
+- **[Database Design](./../../docs/architecture/database-architecture.md)** - Transaction logs.
 
 ## 🔄 Core Flow: Payment Processing
 

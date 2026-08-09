@@ -11,8 +11,8 @@ Tracks real-time stock levels and handles high-concurrency reservations.
 
 ## 🔗 Inner Documentation
 
-- **[Architecture & gRPC](./docs/architecture.md)** - Internal communication.
-- **[Database Design](./docs/database-design.md)** - Stock and Reservation schemas.
+- **[Architecture & gRPC](./../../docs/architecture/README.md)** - Internal communication.
+- **[Database Design](./../../docs/architecture/database-architecture.md)** - Stock and Reservation schemas.
 
 ## 🔄 Core Flow: Stock Reservation
 

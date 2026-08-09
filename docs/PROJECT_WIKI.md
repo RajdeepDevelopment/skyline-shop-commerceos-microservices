@@ -21,12 +21,27 @@ Welcome to the official technical documentation for the **E-Commerce Microservic
 
 The **Skyline Shop** is a production-grade distributed systems reference architecture designed for extreme scale and high availability. It demonstrates elite-level patterns used by top-tier engineering teams.
 
+> **📈 Scale Target:** 10M+ registered users • 1M+ SKU catalog • 10k+ concurrent sessions • thousands of orders/min.
+
 | Pillar          | Strategy                     | Implementation                                                   |
 | :-------------- | :--------------------------- | :--------------------------------------------------------------- |
 | **Performance** | High-throughput, Low-latency | **gRPC** Protocol Buffers & **Redis** Multi-layer Caching        |
 | **Security**    | Zero-Trust Defense           | **PGP Payload Signing** & **RBAC** Authorization                 |
 | **Scalability** | Horizontal Partitioning      | **Application-Level Sharding** & **NATS JetStream** Choreography |
 | **Reliability** | Fault Tolerance              | **Saga Pattern**, **Circuit Breakers**, and **DLQs**             |
+
+---
+
+## 🖼️ UI Showcase
+
+| | |
+| :--- | :--- |
+| **🏠 Home / Banner & Navbar** | **🛍️ All Products** |
+| ![Home](./images/home-banner.png) | ![All Products](./images/all-products.png) |
+| **📦 Product Details** | **⭐ Product Reviews** |
+| ![Product Details](./images/product-details.png) | ![Product Reviews](./images/product-reviews.png) |
+| **🛒 Cart** | **📦 Order Details / Tracking** |
+| ![Cart](./images/cart.png) | ![Order Details](./images/order-details.png) |
 
 ---
 
@@ -52,28 +67,36 @@ graph TD
         Cart[Cart Service]
         Payment[Payment Service]
         Inv[Inventory Service]
+        Avail[Availability Service]
     end
 
     subgraph "Data & Event Plane"
         NATS((NATS JetStream))
         Redis[(Redis Cache)]
-        PGS[(Postgres Shards)]
+        PGS[(Postgres Shards + Replicas)]
+        ES[(Elasticsearch x3)]
+        CH[(ClickHouse)]
     end
 
     LB --> GW
     GW -- gRPC --> Auth
     GW -- gRPC --> Order
     GW -- gRPC --> Product
+    GW -- gRPC --> Cart
 
     Order -- Events --> NATS
+    Product -- Search/Index --> ES
     Product -- Persistence --> Redis
     Product -- Persistence --> PGS
+    Analytics -- Sink --> CH
 
     NATS -- Trigger --> Payment
     NATS -- Trigger --> Inv
     NATS -- Trigger --> Notif[Notification Service]
 
     style NATS fill:#22d3ee,stroke:#0891b2,stroke-width:4px
+    style ES fill:#f59e0b,stroke:#b45309,stroke-width:2px
+    style CH fill:#f59e0b,stroke:#b45309,stroke-width:2px
     style LB fill:#1e293b,stroke:#6366f1,stroke-width:2px
     style Auth fill:#0f172a,stroke:#a855f7
     style PGS fill:#334155,stroke:#475569
@@ -85,15 +108,19 @@ graph TD
 
 Detailed breakdown of the core services and their responsibilities.
 
-| Service               | Primary Domain             | Integration Pattern | Data Store                 |
-| :-------------------- | :------------------------- | :------------------ | :------------------------- |
-| **API Gateway**       | Request Proxy, Edge Auth   | REST / gRPC         | —                          |
-| **Auth Service**      | Identity, RBAC, PGP        | gRPC                | PostgreSQL                 |
-| **Order Service**     | Checkout, Saga Logic       | NATS / gRPC         | PostgreSQL                 |
-| **Product Service**   | Catalog, Search, Sharding  | gRPC                | Postgres (Sharded) / Redis |
-| **Inventory Service** | Stock, Locking Logic       | NATS / gRPC         | PostgreSQL                 |
-| **Payment Service**   | Processing, Idempotency    | NATS                | Redis (Idempotency Key)    |
-| **Analytics Service** | User Data, Sales Reporting | NATS (Sink)         | ClickHouse / Postgres      |
+| Service                 | Primary Domain             | Integration Pattern | Data Store                          |
+| :---------------------- | :------------------------- | :------------------ | :---------------------------------- |
+| **API Gateway**         | Request Proxy, Edge Auth   | REST / gRPC         | —                                   |
+| **Auth Service**        | Identity, RBAC, PGP        | gRPC                | PostgreSQL                          |
+| **User Service**        | User profile, preferences  | gRPC                | PostgreSQL                          |
+| **Order Service**       | Checkout, Saga Logic       | NATS / gRPC         | PostgreSQL (sharded ×4)             |
+| **Product Service**     | Catalog, Search, Sharding  | gRPC                | Postgres (sharded ×4) / Redis / ES  |
+| **Cart Service**        | Cart lifecycle             | gRPC                | Redis / PostgreSQL                  |
+| **Inventory Service**   | Stock, Locking Logic       | NATS / gRPC         | PostgreSQL                          |
+| **Availability Service**| Pincode delivery SLA       | gRPC                | PostgreSQL                          |
+| **Payment Service**     | Processing, Idempotency    | NATS                | Redis (Idempotency Key)             |
+| **Notification Service**| Email/push notifications   | NATS                | —                                   |
+| **Analytics Service**   | User Data, Sales Reporting | NATS (Sink)         | ClickHouse / Postgres               |
 
 ---
 
@@ -271,7 +298,14 @@ The `Product` and `Order` domains utilize **Horizontal Partitioning** to scale b
 ---
 
 > [!TIP]
-> This documentation is generated from the project's living blueprints. For architectural decisions, refer to the [ADR Directory](./docs/adr/).
+> This documentation is generated from the project's living blueprints. For architectural decisions, refer to the [ADR Directory](./adr/).
+
+## 📚 Further Reading
+
+- **[Algorithms & Data Structures](./architecture/algorithms.md)** — the algorithm behind every feature: djb2 shard routing, weighted ranking, deal scoring, market-basket analysis, saga orchestration, circuit breakers.
+- **[Database Architecture](./architecture/database-architecture.md)** — the five stores (Postgres shards, Redis, Elasticsearch, ClickHouse, NATS JetStream), what each holds, and why that arrangement scales.
+- **[Getting Started](./infrastructure/getting-started.md)** — setup, running the stack, and AWS/Floci deployment.
+- **[Architecture Index](./architecture/README.md)** — the full architecture documentation hub.
 
 ---
 

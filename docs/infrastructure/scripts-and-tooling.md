@@ -2,6 +2,33 @@
 
 This section documents the utility scripts and extra tools used to manage, secure, and bootstrap the E-Commerce Microservices Platform.
 
+## 🚀 Deploy — one command (`scripts/deploy.sh`)
+
+The whole platform deploys with a single script — to the local Floci emulator or to real AWS:
+
+```bash
+./scripts/deploy.sh floci     # full deploy on the local Floci emulator (default)
+./scripts/deploy.sh aws       # full deploy on real AWS (ECR + EKS/ArgoCD)
+```
+
+The pipeline is identical for both targets: switch the AWS mode → (floci) start & seed the emulator → resolve secrets from **AWS Secrets Manager** → build & push images → render & apply the Kubernetes manifests.
+
+`scripts/README.md` is the full index of every script with a one-line explanation. Highlights:
+
+- **`scripts/floci-seed.sh`** — idempotent seed of the Floci emulator (S3, SQS/SNS, DynamoDB, Secrets Manager incl. `app-secrets`, ECR, EKS, RDS).
+- **`scripts/floci-deploy.sh`** — renders `k8s/base` (secrets injected) and applies a 1-replica overlay to the Floci k3s cluster.
+- **`scripts/use-env.sh`** — switches `.env` between local Floci and real AWS (`local` / `aws` / `status`).
+- **`scripts/floci-aws.sh`** — AWS CLI inside the emulator container (no host AWS CLI or account needed).
+
+## 🔑 Secrets handling
+
+- `k8s/base/secrets.yml` is a **dev-only fallback** (placeholders, readable via `stringData`).
+- Real JWT/DB secrets are stored in AWS Secrets Manager (`<project>/<env>/app-secrets`), seeded with random values by `floci-seed.sh`.
+- `deploy.sh` materializes the rendered `Secret` from Secrets Manager at deploy time — **no secrets are committed to git**.
+- On real AWS the IRSA roles in `infrastructure/aws/iam.tf` already permit `secretsmanager:GetSecretValue`, the same read path used here.
+
+---
+
 ## 🗝️ PGP Key Generation (`generate-pgp-keys.js`)
 
 ### Why do we use this?

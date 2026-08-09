@@ -23,11 +23,17 @@ graph LR
 
 ## 🛠️ Infrastructure Stack (docker-compose.yml)
 
-- **postgres**: Relational database.
-- **redis**: Caching layer.
-- **nats**: Messaging broker.
+- **postgres**: Relational database (sharded per service).
+- **redis**: Caching layer + discovery ranking storage.
+- **nats**: Messaging broker (JetStream event bus).
+- **clickhouse**: Columnar store for behaviour events / ranking history (port 8123 HTTP, 9000 native).
 - **prometheus/grafana**: Monitoring.
 - **nginx**: Reverse proxy.
+
+> **ClickHouse auth note**: the stock `24.8` image restricts the `default` user to
+> loopback, which blocks container-to-container connections. The compose file mounts
+> `infrastructure/clickhouse/users.d/zzz-allow-network.xml`, which allows the `default`
+> user from any network (development only).
 
 ---
 

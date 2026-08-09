@@ -6,7 +6,7 @@ The **Auth Service** is the security backbone of the platform, managing identity
 
 - **Framework**: NestJS
 - **Data Store**: PostgreSQL (Users & Roles)
-- **Encryption**: Argon2 (Passwords), PGP (Service Signatures)
+- **Encryption**: bcrypt (Passwords), PGP (Service Signatures)
 
 ## 📋 Responsibilities
 

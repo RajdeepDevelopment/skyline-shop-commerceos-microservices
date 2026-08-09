@@ -1,78 +1,80 @@
-# E-Commerce Web Shop Frontend
+# 🛍️ E-Commerce Web Shop Frontend
 
-A modern, modular e-commerce frontend built with React, TypeScript, and Zustand for state management.
+A modern, modular e-commerce storefront built with **React 19**, **TypeScript**, **Vite**, **Tailwind CSS**, **TanStack Query**, and **Zustand**. It talks to the [microservices backend](../../docs/services/README.md) exclusively through the **API Gateway** (`/api/v1/*`).
+
+## 🖼️ Screenshots
+
+| | |
+| :--- | :--- |
+| **🏠 Home / Banner & Navbar** | **🛍️ All Products** |
+| ![Home](../../docs/images/home-banner.png) | ![All Products](../../docs/images/all-products.png) |
+| **📦 Product Details** | **⭐ Product Reviews** |
+| ![Product Details](../../docs/images/product-details.png) | ![Product Reviews](../../docs/images/product-reviews.png) |
+| **🛒 Cart** | **📦 Order Details / Tracking** |
+| ![Cart](../../docs/images/cart.png) | ![Order Details](../../docs/images/order-details.png) |
 
 ## Architecture
 
-This project follows a modular architecture with clear separation of concerns:
-
-### Module Structure
-
-Each module (auth, cart, products, orders, etc.) follows this structure:
+Modular architecture with clear separation of concerns. Each module follows the same shape:
 
 ```
 modules/[module-name]/
-â”œâ”€â”€ components/     # Module-specific React components
-â”œâ”€â”€ services/       # API service layer for backend communication
-â”œâ”€â”€ stores/         # Zustand state management
-â”œâ”€â”€ types/          # TypeScript type definitions
-â””â”€â”€ hooks/          # Custom React hooks
+├── components/     # Module-specific React components
+├── services/       # API service layer for backend communication
+├── stores/         # Zustand state management
+├── types/          # TypeScript type definitions
+└── hooks/          # Custom React hooks
 ```
 
 ### Common Components
 
-Reusable UI components are located in `common/ui/`:
+Reusable UI components live in `common/ui/` and `components/ui/`:
 
-- Button, Input, Card, Loading components
-- Consistent design system with Tailwind CSS
+- Button, Input, Card, Dialog, Loading components
+- Consistent design system with Tailwind CSS + CVA
 - TypeScript support with proper prop interfaces
 
-### State Management
+### State & Data
 
-- **Zustand** for global state management
-- Each module has its own store with typed state
-- Persistent storage for auth state
-- Optimistic updates for better UX
+- **Zustand** for global state (auth, cart, orders, recently-viewed)
+- **TanStack Query** for server-state caching and invalidation
+- **React Hook Form + Zod** for validated forms (checkout, address, review)
+- Guest identity (`x-anonymous-id`) + session id sent on every request so the backend can track behaviour (recently viewed, recommendations) even when logged out
 
 ## Modules
 
 ### Auth Module
+- Login / Register / Logout (httpOnly JWT cookies)
+- Session persistence + protected routes
 
-- Login/Register functionality
-- JWT token management
-- User session persistence
-- Protected routes
+### Catalog & Products
+- Product listing with category + **price-range filters (INR)** and sorting
+- Product details, similar items, frequently-bought, recently-viewed
+- Search suggestions, trending/popular searches
+- Reviews + rating summaries
 
 ### Cart Module
-
-- Add/remove/update cart items
-- Real-time cart calculations
-- Local storage persistence
-- Integration with product inventory
-
-### Products Module
-
-- Product listing with filtering
-- Product details view
-- Category management
-- Search functionality
+- Add / remove / update cart items, live totals
+- Local storage persistence + server sync via Cart Service
 
 ### Orders Module
+- Checkout (idempotent create-order)
+- **Order tracking** — clean 404 "Order not found" for missing ids
+- Order history on the Account page
 
-- Order creation and management
-- Order history
-- Status tracking
-- Shipping information
+### Account Module
+- Profile summary, **order history**, **addresses**, **saved payment cards**, recently-viewed products
+- Sign-out
 
 ## API Integration
 
-Each service module connects to corresponding microservice:
+Every call goes through the API Gateway at `VITE_API_BASE_URL` (`/api/v1/*`):
 
-- **Auth Service**: `/auth/*`
-- **Cart Service**: `/cart/*`
-- **Product Service**: `/products/*`
-- **Order Service**: `/orders/*`
-- **Payment Service**: `/payments/*`
+- **Auth**: `/api/v1/auth/*`
+- **Cart**: `/api/v1/cart/*`
+- **Catalog**: `/api/v1/products/*`, `/api/v1/discovery/*`
+- **Orders**: `/api/v1/orders/*`
+- **Account**: `/api/v1/account/*`
 
 ## Getting Started
 
@@ -98,89 +100,11 @@ pnpm dev
 
 ## Environment Variables
 
-- `VITE_API_BASE_URL`: Base URL for API gateway
-- `VITE_AUTH_SERVICE_URL`: Auth service endpoint
-- `VITE_CART_SERVICE_URL`: Cart service endpoint
-- `VITE_PRODUCT_SERVICE_URL`: Product service endpoint
-- `VITE_ORDER_SERVICE_URL`: Order service endpoint
+- `VITE_API_BASE_URL`: Base URL for the API Gateway (default `http://localhost:3000`)
 
-## Usage Examples
-
-### Using Auth Store
-
-```typescript
-import { useAuthStore } from './modules';
-
-const { login, logout, user, isAuthenticated } = useAuthStore();
-
-// Login
-await login('user@example.com', 'password');
-
-// Logout
-await logout();
-```
-
-### Using Cart Store
-
-```typescript
-import { useCartStore } from './modules';
-
-const { addToCart, removeFromCart, items, totalAmount } = useCartStore();
-
-// Add to cart
-await addToCart('user123', 'product456', 2);
-
-// Remove from cart
-await removeFromCart('user123', 'item789');
-```
-
-### Using Common Components
-
-```typescript
-import { Button, Input, Card } from './common';
-
-<Button variant="primary" onClick={handleClick}>
-  Click me
-</Button>
-
-<Input label="Email" type="email" />
-
-<Card>
-  <CardHeader>
-    <CardTitle>Product Title</CardTitle>
-  </CardHeader>
-  <CardContent>
-    Product content here
-  </CardContent>
-</Card>
-```
-
-## Development
-
-### Adding New Modules
-
-1. Create module directory: `modules/new-module/`
-2. Add subdirectories: `components/`, `services/`, `stores/`, `types/`
-3. Define types in `types/`
-4. Create service class in `services/`
-5. Implement Zustand store in `stores/`
-6. Export from `modules/index.ts`
-
-### Adding New Components
-
-1. Add to appropriate module or `common/components/`
-2. Follow existing component patterns
-3. Use TypeScript interfaces for props
-4. Include proper accessibility attributes
-
-## Build
+## Build & Lint
 
 ```bash
-pnpm build
-```
-
-## Lint
-
-```bash
+pnpm build   # tsc && vite build
 pnpm lint
 ```

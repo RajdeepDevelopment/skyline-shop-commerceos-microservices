@@ -11,8 +11,8 @@ Manages user profiles, preferences, and account metadata.
 
 ## 🔗 Inner Documentation
 
-- **[Architecture](./docs/architecture.md)** - Service design and events.
-- **[Database Design](./docs/database-design.md)** - User schema.
+- **[Architecture](./../../docs/architecture/README.md)** - Service design and events.
+- **[Database Design](./../../docs/architecture/database-architecture.md)** - User schema.
 
 ## 🔄 Core Flow: Profile Update
 

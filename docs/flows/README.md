@@ -1,15 +1,23 @@
 # 🌊 System Flows
 
-Visualizing how data and events move through the system for core business processes.
+Visualizing how data and events move through the system for core business processes — with real storefront screenshots.
+
+## 🖼️ UI Showcase
+
+| | |
+| :--- | :--- |
+| **🏠 Home / Banner** | **🛍️ All Products** |
+| ![Home](../images/home-banner.png) | ![All Products](../images/all-products.png) |
+| **📦 Product Details** | **⭐ Product Reviews** |
+| ![Product Details](../images/product-details.png) | ![Product Reviews](../images/product-reviews.png) |
+| **🛒 Cart** | **📦 Order Details** |
+| ![Cart](../images/cart.png) | ![Order Details](../images/order-details.png) |
 
 ## 🔄 Business Processes
 
-- **[Authentication Flow](./authentication-flow.md)** - Login, Token Issuance, and Refresh.
-- **[Checkout Flow](./checkout-flow.md)** - From Cart to Order Placement.
-- **[Order Processing Flow](./order-processing-flow.md)** - Payment, Inventory, and Fulfillment.
-- **[Payment Flow](./payment-flow.md)** - Secure transaction processing.
-- **[Inventory Sync Flow](./inventory-sync-flow.md)** - Real-time stock updates across services.
-- **[Notification Flow](./notification-flow.md)** - Event-driven user communication.
+- **[Catalog Browsing & Discovery](./catalog-browsing-flow.md)** - Home, search, filters, product details & reviews.
+- **[Checkout Flow](./checkout-flow.md)** - From cart to confirmed order (Saga orchestration).
+- **[Order Tracking Flow](./track-order-flow.md)** - Track an order, 404 handling, account order history.
 
 ---
 

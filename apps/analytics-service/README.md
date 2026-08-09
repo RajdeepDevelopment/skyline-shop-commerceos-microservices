@@ -11,7 +11,7 @@ Consumes system-wide events to provide business intelligence and tracking.
 
 ## 🔗 Inner Documentation
 
-- **[Architecture](./docs/architecture.md)** - Event aggregation and processing.
+- **[Architecture](./../../docs/architecture/README.md)** - Event aggregation and processing.
 
 ## 🔄 Core Flow: Event Collection
 

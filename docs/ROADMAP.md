@@ -43,7 +43,7 @@ This document outlines the engineering trajectory for the E-Commerce Microservic
 
 ## 🛠️ Contribution
 
-We welcome PRs for any of the roadmap items! Please refer to **[CONTRIBUTING.md](./CONTRIBUTING.md)** for engineering standards.
+We welcome PRs for any of the roadmap items! Please refer to **[CONTRIBUTING.md](../CONTRIBUTING.md)** for engineering standards.
 
 ---
 
