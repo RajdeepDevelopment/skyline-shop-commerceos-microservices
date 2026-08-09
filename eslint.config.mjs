@@ -25,6 +25,8 @@ export default tseslint.config(
       'lint-staged.config.js',
       'generate-pgp-keys.js',
       'test/load/*.js',
+      '**/*.spec.ts',
+      'test/**/*.ts',
       'remove_nochecks.js',
       'autofix.js',
     ],
@@ -41,7 +43,8 @@ export default tseslint.config(
       sourceType: 'commonjs',
       parserOptions: {
         projectService: {
-          allowDefaultProject: ['*.js', '*.mjs', '*.config.js'],
+          allowDefaultProject: ['*.js', '*.mjs', '*.config.js', 'scripts/*.ts', 'scripts/seed/*.ts', 'scripts/seed/lib/*.ts'],
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 20,
         },
         tsconfigRootDir: import.meta.dirname,
       },

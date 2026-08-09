@@ -1,162 +1,1374 @@
+# =============================================================================
+# Skyline Shop — e-commerce microservices stack (docker compose)
+#
+# One command to run everything:   docker compose up -d
+#   - Postgres (main DBs, shards, read replicas) + PgBouncer + Redis + NATS
+#   - Elasticsearch / Kibana / Jaeger / Prometheus / Grafana / pgAdmin / RedisInsight
+#   - `bootstrap` one-shot: pushes prisma/schema.prisma to every DB and seeds
+#     10k products into the product shards + Elasticsearch
+#   - 7 NestJS microservices + API gateway + React web-shop (http://localhost:8080)
+#
+# Reuse anchors (x-*) keep the file DRY — each entry just overrides name/port/volume.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Shared config (YAML anchors — not services)
+# -----------------------------------------------------------------------------
+x-postgres-env: &postgres-env
+  POSTGRES_USER: root
+  POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+
+x-postgres-base: &postgres-base
+  image: postgres:15-alpine
+  restart: unless-stopped
+  environment:
+    <<: *postgres-env
+  healthcheck:
+    test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -p 5432 -U root']
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 30s
+  networks:
+    - ecommerce_network
+
+x-pgbouncer-base: &pgbouncer-base
+  image: edoburu/pgbouncer:v1.25.2-p0
+  restart: unless-stopped
+  ports:
+    - '6432:6432'
+  volumes:
+    - ./infrastructure/pgbouncer/pgbouncer.ini:/etc/pgbouncer/pgbouncer.ini:ro
+    - ./infrastructure/pgbouncer/userlist.txt:/etc/pgbouncer/userlist.txt:ro
+  networks:
+    - ecommerce_network
+
+x-nats-base: &nats-base
+  image: nats:2.9-alpine
+  restart: unless-stopped
+  healthcheck:
+    test: ['CMD-SHELL', 'wget -qO- http://localhost:8222/healthz || exit 1']
+    interval: 10s
+    timeout: 5s
+    retries: 5
+    start_period: 15s
+  networks:
+    - ecommerce_network
+
+x-es-env: &es-env
+  cluster.name: ecommerce-es-cluster
+  cluster.initial_master_nodes: es1,es2,es3
+  bootstrap.memory_lock: 'true'
+  xpack.security.enabled: 'false'
+  xpack.security.http.ssl.enabled: 'false'
+  ES_JAVA_OPTS: '-Xms512m -Xmx512m'
+  network.host: 0.0.0.0
+
+x-es-base: &es-base
+  image: docker.elastic.co/elasticsearch/elasticsearch:8.14.3
+  restart: unless-stopped
+  environment:
+    <<: *es-env
+  ulimits:
+    memlock:
+      soft: -1
+      hard: -1
+    nofile:
+      soft: 65536
+      hard: 65536
+  healthcheck:
+    test: ['CMD-SHELL', 'curl -sf http://localhost:9200/_cluster/health || exit 1']
+    interval: 20s
+    timeout: 10s
+    retries: 5
+    start_period: 60s
+  networks:
+    - ecommerce_network
+
+# Shared settings for the NestJS microservices (each one waits for `bootstrap`
+# to finish so the DB schema + seed data exist before it starts).
+x-service-base: &service-base
+  restart: unless-stopped
+  depends_on:
+    bootstrap:
+      condition: service_completed_successfully
+  networks:
+    - ecommerce_network
+
 services:
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — main databases
+  # ---------------------------------------------------------------------------
   auth_db:
-    image: postgres:15-alpine
+    <<: *postgres-base
     container_name: ecommerce_auth_db
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: password
+      <<: *postgres-env
       POSTGRES_DB: auth_db
     ports:
       - '5433:5432'
     volumes:
       - auth_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U root -d auth_db']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - ecommerce_network
 
   order_db:
-    image: postgres:15-alpine
+    <<: *postgres-base
     container_name: ecommerce_order_db
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: password
+      <<: *postgres-env
       POSTGRES_DB: order_db
     ports:
       - '5434:5432'
     volumes:
       - order_db_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U root -d order_db']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - ecommerce_network
 
-  # PRODUCT DATABASE - MASTER (WRITES)
+  availability_db:
+    <<: *postgres-base
+    container_name: ecommerce_availability_db
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: availability_db
+    ports:
+      - '5440:5432'
+    volumes:
+      - availability_db_data:/var/lib/postgresql/data
+
+
   product_db_master:
-    image: postgres:15-alpine
+    <<: *postgres-base
     container_name: ecommerce_product_db_master
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: password
+      <<: *postgres-env
       POSTGRES_DB: product_db
     ports:
       - '5435:5432'
     volumes:
       - product_db_master_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ['CMD-SHELL', 'pg_isready -U root -d product_db']
-      interval: 5s
-      timeout: 5s
-      retries: 5
-    networks:
-      - ecommerce_network
 
-  # PRODUCT DATABASE - REPLICA (READS)
   product_db_replica:
-    image: postgres:15-alpine
+    <<: *postgres-base
     container_name: ecommerce_product_db_replica
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: password
+      <<: *postgres-env
       POSTGRES_DB: product_db
     ports:
       - '5436:5432'
     volumes:
       - product_db_replica_data:/var/lib/postgresql/data
-    networks:
-      - ecommerce_network
 
-  # PRODUCT DATABASE - SHARD B (HORIZONTAL SCALING)
-  product_db_shard_b:
-    image: postgres:15-alpine
-    container_name: ecommerce_product_db_shard_b
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — auth shards (2 x primary + replica)
+  # ---------------------------------------------------------------------------
+  auth_s0:
+    <<: *postgres-base
+    container_name: ecommerce_auth_s0
     environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: product_db_shard_b
+      <<: *postgres-env
+      POSTGRES_DB: auth_s0
     ports:
-      - '5437:5432'
+      - '5441:5432'
     volumes:
-      - product_db_shard_b_data:/var/lib/postgresql/data
-    networks:
-      - ecommerce_network
+      - auth_s0_data:/var/lib/postgresql/data
 
-  # LOAD BALANCER (NGINX)
-  nginx_lb:
-    image: nginx:alpine
-    container_name: ecommerce_lb
+  auth_s0_replica:
+    <<: *postgres-base
+    container_name: ecommerce_auth_s0_replica
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: auth_s0
     ports:
-      - '80:80'
+      - '5442:5432'
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
-    networks:
-      - ecommerce_network
+      - auth_s0_replica_data:/var/lib/postgresql/data
 
+  auth_s1:
+    <<: *postgres-base
+    container_name: ecommerce_auth_s1
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: auth_s1
+    ports:
+      - '5443:5432'
+    volumes:
+      - auth_s1_data:/var/lib/postgresql/data
+
+  auth_s1_replica:
+    <<: *postgres-base
+    container_name: ecommerce_auth_s1_replica
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: auth_s1
+    ports:
+      - '5444:5432'
+    volumes:
+      - auth_s1_replica_data:/var/lib/postgresql/data
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — order shards (4 x primary + replica)
+  # ---------------------------------------------------------------------------
+  order_s0:
+    <<: *postgres-base
+    container_name: ecommerce_order_s0
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: order_s0
+    ports:
+      - '5451:5432'
+    volumes:
+      - order_s0_data:/var/lib/postgresql/data
+
+  order_s0_replica:
+    <<: *postgres-base
+    container_name: ecommerce_order_s0_replica
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: order_s0
+    ports:
+      - '5452:5432'
+    volumes:
+      - order_s0_replica_data:/var/lib/postgresql/data
+
+  order_s1:
+    <<: *postgres-base
+    container_name: ecommerce_order_s1
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: order_s1
+    ports:
+      - '5453:5432'
+    volumes:
+      - order_s1_data:/var/lib/postgresql/data
+
+  order_s1_replica:
+    <<: *postgres-base
+    container_name: ecommerce_order_s1_replica
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: order_s1
+    ports:
+      - '5454:5432'
+    volumes:
+      - order_s1_replica_data:/var/lib/postgresql/data
+
+  order_s2:
+    <<: *postgres-base
+    container_name: ecommerce_order_s2
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: order_s2
+    ports:
+      - '5455:5432'
+    volumes:
+      - order_s2_data:/var/lib/postgresql/data
+
+  order_s2_replica:
+    <<: *postgres-base
+    container_name: ecommerce_order_s2_replica
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: order_s2
+    ports:
+      - '5456:5432'
+    volumes:
+      - order_s2_replica_data:/var/lib/postgresql/data
+
+  order_s3:
+    <<: *postgres-base
+    container_name: ecommerce_order_s3
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: order_s3
+    ports:
+      - '5457:5432'
+    volumes:
+      - order_s3_data:/var/lib/postgresql/data
+
+  order_s3_replica:
+    <<: *postgres-base
+    container_name: ecommerce_order_s3_replica
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: order_s3
+    ports:
+      - '5458:5432'
+    volumes:
+      - order_s3_replica_data:/var/lib/postgresql/data
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL — product shards (4 x primary + replica)
+  # ---------------------------------------------------------------------------
+  product_s0:
+    <<: *postgres-base
+    container_name: ecommerce_product_s0
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: product_s0
+    ports:
+      - '5461:5432'
+    volumes:
+      - product_s0_data:/var/lib/postgresql/data
+
+  product_s0_replica:
+    <<: *postgres-base
+    container_name: ecommerce_product_s0_replica
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: product_s0
+    ports:
+      - '5462:5432'
+    volumes:
+      - product_s0_replica_data:/var/lib/postgresql/data
+
+  product_s1:
+    <<: *postgres-base
+    container_name: ecommerce_product_s1
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: product_s1
+    ports:
+      - '5463:5432'
+    volumes:
+      - product_s1_data:/var/lib/postgresql/data
+
+  product_s1_replica:
+    <<: *postgres-base
+    container_name: ecommerce_product_s1_replica
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: product_s1
+    ports:
+      - '5464:5432'
+    volumes:
+      - product_s1_replica_data:/var/lib/postgresql/data
+
+  product_s2:
+    <<: *postgres-base
+    container_name: ecommerce_product_s2
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: product_s2
+    ports:
+      - '5465:5432'
+    volumes:
+      - product_s2_data:/var/lib/postgresql/data
+
+  product_s2_replica:
+    <<: *postgres-base
+    container_name: ecommerce_product_s2_replica
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: product_s2
+    ports:
+      - '5466:5432'
+    volumes:
+      - product_s2_replica_data:/var/lib/postgresql/data
+
+  product_s3:
+    <<: *postgres-base
+    container_name: ecommerce_product_s3
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: product_s3
+    ports:
+      - '5467:5432'
+    volumes:
+      - product_s3_data:/var/lib/postgresql/data
+
+  product_s3_replica:
+    <<: *postgres-base
+    container_name: ecommerce_product_s3_replica
+    environment:
+      <<: *postgres-env
+      POSTGRES_DB: product_s3
+    ports:
+      - '5468:5432'
+    volumes:
+      - product_s3_replica_data:/var/lib/postgresql/data
+
+  # ---------------------------------------------------------------------------
+  # PgBouncer — shared pooler + one pooler per shard
+  # ---------------------------------------------------------------------------
+  pgbouncer:
+    <<: *pgbouncer-base
+    container_name: ecommerce_pgbouncer
+    depends_on:
+      auth_db: { condition: service_healthy }
+      order_db: { condition: service_healthy }
+      product_db_master: { condition: service_healthy }
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -h 127.0.0.1 -p 6432']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  pgbouncer_auth_s0:
+    <<: *pgbouncer-base
+    container_name: ecommerce_pgbouncer_auth_s0
+    ports:
+      - '6441:6432'
+    environment:
+      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s0:5432/auth_s0,postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s0_replica:5432/auth_s0"
+      POOL_MODE: transaction
+      DEFAULT_POOL_SIZE: 25
+      MAX_CLIENT_CONN: 500
+      LISTEN_PORT: 6432
+    depends_on:
+      auth_s0: { condition: service_healthy }
+
+  pgbouncer_auth_s1:
+    <<: *pgbouncer-base
+    container_name: ecommerce_pgbouncer_auth_s1
+    ports:
+      - '6442:6432'
+    environment:
+      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s1:5432/auth_s1,postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s1_replica:5432/auth_s1"
+      POOL_MODE: transaction
+      DEFAULT_POOL_SIZE: 25
+      MAX_CLIENT_CONN: 500
+      LISTEN_PORT: 6432
+    depends_on:
+      auth_s1: { condition: service_healthy }
+
+  pgbouncer_order_s0:
+    <<: *pgbouncer-base
+    container_name: ecommerce_pgbouncer_order_s0
+    ports:
+      - '6451:6432'
+    environment:
+      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@order_s0:5432/order_s0,postgresql://root:${POSTGRES_PASSWORD:-password}@order_s0_replica:5432/order_s0"
+      POOL_MODE: transaction
+      DEFAULT_POOL_SIZE: 25
+      MAX_CLIENT_CONN: 500
+      LISTEN_PORT: 6432
+    depends_on:
+      order_s0: { condition: service_healthy }
+
+  pgbouncer_order_s1:
+    <<: *pgbouncer-base
+    container_name: ecommerce_pgbouncer_order_s1
+    ports:
+      - '6452:6432'
+    environment:
+      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@order_s1:5432/order_s1,postgresql://root:${POSTGRES_PASSWORD:-password}@order_s1_replica:5432/order_s1"
+      POOL_MODE: transaction
+      DEFAULT_POOL_SIZE: 25
+      MAX_CLIENT_CONN: 500
+      LISTEN_PORT: 6432
+    depends_on:
+      order_s1: { condition: service_healthy }
+
+  pgbouncer_order_s2:
+    <<: *pgbouncer-base
+    container_name: ecommerce_pgbouncer_order_s2
+    ports:
+      - '6453:6432'
+    environment:
+      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@order_s2:5432/order_s2,postgresql://root:${POSTGRES_PASSWORD:-password}@order_s2_replica:5432/order_s2"
+      POOL_MODE: transaction
+      DEFAULT_POOL_SIZE: 25
+      MAX_CLIENT_CONN: 500
+      LISTEN_PORT: 6432
+    depends_on:
+      order_s2: { condition: service_healthy }
+
+  pgbouncer_order_s3:
+    <<: *pgbouncer-base
+    container_name: ecommerce_pgbouncer_order_s3
+    ports:
+      - '6454:6432'
+    environment:
+      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@order_s3:5432/order_s3,postgresql://root:${POSTGRES_PASSWORD:-password}@order_s3_replica:5432/order_s3"
+      POOL_MODE: transaction
+      DEFAULT_POOL_SIZE: 25
+      MAX_CLIENT_CONN: 500
+      LISTEN_PORT: 6432
+    depends_on:
+      order_s3: { condition: service_healthy }
+
+  pgbouncer_product_s0:
+    <<: *pgbouncer-base
+    container_name: ecommerce_pgbouncer_product_s0
+    ports:
+      - '6461:6432'
+    environment:
+      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0:5432/product_s0,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0_replica:5432/product_s0"
+      POOL_MODE: transaction
+      DEFAULT_POOL_SIZE: 30
+      MAX_CLIENT_CONN: 500
+      LISTEN_PORT: 6432
+    depends_on:
+      product_s0: { condition: service_healthy }
+
+  pgbouncer_product_s1:
+    <<: *pgbouncer-base
+    container_name: ecommerce_pgbouncer_product_s1
+    ports:
+      - '6462:6432'
+    environment:
+      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1:5432/product_s1,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1_replica:5432/product_s1"
+      POOL_MODE: transaction
+      DEFAULT_POOL_SIZE: 30
+      MAX_CLIENT_CONN: 500
+      LISTEN_PORT: 6432
+    depends_on:
+      product_s1: { condition: service_healthy }
+
+  pgbouncer_product_s2:
+    <<: *pgbouncer-base
+    container_name: ecommerce_pgbouncer_product_s2
+    ports:
+      - '6463:6432'
+    environment:
+      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2:5432/product_s2,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2_replica:5432/product_s2"
+      POOL_MODE: transaction
+      DEFAULT_POOL_SIZE: 30
+      MAX_CLIENT_CONN: 500
+      LISTEN_PORT: 6432
+    depends_on:
+      product_s2: { condition: service_healthy }
+
+  pgbouncer_product_s3:
+    <<: *pgbouncer-base
+    container_name: ecommerce_pgbouncer_product_s3
+    ports:
+      - '6464:6432'
+    environment:
+      DATABASE_URLS: "postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3:5432/product_s3,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3_replica:5432/product_s3"
+      POOL_MODE: transaction
+      DEFAULT_POOL_SIZE: 30
+      MAX_CLIENT_CONN: 500
+      LISTEN_PORT: 6432
+    depends_on:
+      product_s3: { condition: service_healthy }
+
+  # ---------------------------------------------------------------------------
+  # Redis + NATS JetStream cluster
+  # ---------------------------------------------------------------------------
   redis:
     image: redis:7-alpine
     container_name: ecommerce_redis
+    restart: unless-stopped
     ports:
       - '6379:6379'
     volumes:
       - redis_data:/data
-    command: redis-server --requirepass password
+    command: redis-server --requirepass ${REDIS_PASSWORD:-password} --maxmemory 256mb --maxmemory-policy allkeys-lru --appendonly yes
     healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 5s
+      test: ['CMD', 'redis-cli', '-a', '${REDIS_PASSWORD:-password}', 'ping']
+      interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
     networks:
       - ecommerce_network
 
-  nats:
-    image: nats:2.9-alpine
-    container_name: ecommerce_nats
+  nats_1:
+    <<: *nats-base
+    container_name: ecommerce_nats_1
     ports:
       - '4222:4222'
-      - '8222:8222' # Management interface
-    command: -js # Enable JetStream
+      - '8222:8222'
+    command: >
+      --server_name nats_1 --cluster_name ecommerce_nats_cluster
+      --cluster nats://0.0.0.0:6222
+      --routes nats://nats_2:6222,nats://nats_3:6222
+      --js --sd /data -m 8222
     volumes:
-      - nats_data:/data
+      - nats_1_data:/data
+
+  nats_2:
+    <<: *nats-base
+    container_name: ecommerce_nats_2
+    ports:
+      - '4223:4222'
+      - '8223:8222'
+    command: >
+      --server_name nats_2 --cluster_name ecommerce_nats_cluster
+      --cluster nats://0.0.0.0:6222
+      --routes nats://nats_1:6222,nats://nats_3:6222
+      --js --sd /data -m 8222
+    volumes:
+      - nats_2_data:/data
+
+  nats_3:
+    <<: *nats-base
+    container_name: ecommerce_nats_3
+    ports:
+      - '4224:4222'
+      - '8224:8222'
+    command: >
+      --server_name nats_3 --cluster_name ecommerce_nats_cluster
+      --cluster nats://0.0.0.0:6222
+      --routes nats://nats_1:6222,nats://nats_2:6222,nats://nats_4:6222,nats://nats_5:6222
+      --js --sd /data -m 8222
+    volumes:
+      - nats_3_data:/data
+
+  nats_4:
+    <<: *nats-base
+    container_name: ecommerce_nats_4
+    ports:
+      - '4225:4222'
+      - '8225:8222'
+    command: >
+      --server_name nats_4 --cluster_name ecommerce_nats_cluster
+      --cluster nats://0.0.0.0:6222
+      --routes nats://nats_1:6222,nats://nats_2:6222,nats://nats_3:6222,nats://nats_5:6222
+      --js --sd /data -m 8222
+    volumes:
+      - nats_4_data:/data
+
+  nats_5:
+    <<: *nats-base
+    container_name: ecommerce_nats_5
+    ports:
+      - '4226:4222'
+      - '8226:8222'
+    command: >
+      --server_name nats_5 --cluster_name ecommerce_nats_cluster
+      --cluster nats://0.0.0.0:6222
+      --routes nats://nats_1:6222,nats://nats_2:6222,nats://nats_3:6222,nats://nats_4:6222
+      --js --sd /data -m 8222
+    volumes:
+      - nats_5_data:/data
+
+  # ---------------------------------------------------------------------------
+  # ClickHouse — behaviour analytics / ranking history
+  # ---------------------------------------------------------------------------
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.8-alpine
+    container_name: ecommerce_clickhouse
+    restart: unless-stopped
+    ports:
+      - '8123:8123'   # HTTP interface
+      - '9000:9000'   # Native interface
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+      - ./infrastructure/clickhouse/users.d/zzz-allow-network.xml:/etc/clickhouse-server/users.d/zzz-allow-network.xml:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:8123/ping || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     networks:
       - ecommerce_network
 
+  # ---------------------------------------------------------------------------
+  # Nginx load balancer (proxies to the API gateway)
+  # ---------------------------------------------------------------------------
+  nginx_lb:
+    image: nginx:alpine
+    container_name: ecommerce_lb
+    restart: unless-stopped
+    ports:
+      - '80:80'
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sf http://localhost:80/health || exit 1']
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - ecommerce_network
+
+  # ---------------------------------------------------------------------------
+  # Bootstrap — one-shot: push schema to every DB, then seed product shards + ES.
+  # Runs once on `up`; every backend waits for it to finish successfully.
+  # ---------------------------------------------------------------------------
+  bootstrap:
+    build:
+      context: .
+      dockerfile: docker/bootstrap.Dockerfile
+    container_name: ecommerce_bootstrap
+    restart: 'no'
+    environment:
+      ELASTICSEARCH_URL: http://es1:9200
+      SEED_TARGET: compose
+      SEED_PRODUCT_COUNT: '10000'
+      AVAILABILITY_DATABASE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@availability_db:5432/availability_db?schema=public
+      MIGRATE_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      MIGRATE_URLS: >-
+        postgresql://root:${POSTGRES_PASSWORD:-password}@auth_db:5432/auth_db?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@availability_db:5432/availability_db?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@product_db_master:5432/product_db?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@product_db_replica:5432/product_db?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s0:5432/auth_s0?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s0_replica:5432/auth_s0?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s1:5432/auth_s1?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s1_replica:5432/auth_s1?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@order_s0:5432/order_s0?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@order_s0_replica:5432/order_s0?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@order_s1:5432/order_s1?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@order_s1_replica:5432/order_s1?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@order_s2:5432/order_s2?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@order_s2_replica:5432/order_s2?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@order_s3:5432/order_s3?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@order_s3_replica:5432/order_s3?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0:5432/product_s0?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0_replica:5432/product_s0?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1:5432/product_s1?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1_replica:5432/product_s1?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2:5432/product_s2?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2_replica:5432/product_s2?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3:5432/product_s3?schema=public,
+        postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3_replica:5432/product_s3?schema=public
+      SEED_SHARD_URLS: 'postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0:5432/product_s0?schema=public,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1:5432/product_s1?schema=public,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2:5432/product_s2?schema=public,postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3:5432/product_s3?schema=public'
+    depends_on:
+      auth_db: { condition: service_healthy }
+      auth_s0: { condition: service_healthy }
+      auth_s0_replica: { condition: service_healthy }
+      auth_s1: { condition: service_healthy }
+      auth_s1_replica: { condition: service_healthy }
+      availability_db: { condition: service_healthy }
+      order_db: { condition: service_healthy }
+      order_s0: { condition: service_healthy }
+      order_s0_replica: { condition: service_healthy }
+      order_s1: { condition: service_healthy }
+      order_s1_replica: { condition: service_healthy }
+      order_s2: { condition: service_healthy }
+      order_s2_replica: { condition: service_healthy }
+      order_s3: { condition: service_healthy }
+      order_s3_replica: { condition: service_healthy }
+      product_db_master: { condition: service_healthy }
+      product_db_replica: { condition: service_healthy }
+      product_s0: { condition: service_healthy }
+      product_s0_replica: { condition: service_healthy }
+      product_s1: { condition: service_healthy }
+      product_s1_replica: { condition: service_healthy }
+      product_s2: { condition: service_healthy }
+      product_s2_replica: { condition: service_healthy }
+      product_s3: { condition: service_healthy }
+      product_s3_replica: { condition: service_healthy }
+      es1: { condition: service_healthy }
+    networks:
+      - ecommerce_network
+
+  # ---------------------------------------------------------------------------
+  # Backend microservices (built from apps/<service>/Dockerfile)
+  # ---------------------------------------------------------------------------
+  api-gateway:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: apps/api-gateway/Dockerfile
+    container_name: ecommerce_api_gateway
+    ports:
+      - '3000:3000'
+    environment:
+      NODE_ENV: development
+      API_GATEWAY_PORT: '3000'
+      DATABASE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@auth_db:5432/auth_db?schema=public
+      JWT_SECRET: ${JWT_SECRET:-super_secret_enterprise_key_change_me_in_prod}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-super_secret_refresh_key_change_me_in_prod}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-7d}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://localhost:8080}
+      CART_SERVICE_URL: http://cart-service:3005
+      PRODUCT_SERVICE_URL: http://product-service:3003
+      INVENTORY_SERVICE_URL: http://inventory-service:3004
+      PAYMENT_SERVICE_URL: http://payment-service:3007
+      AVAILABILITY_SERVICE_URL: http://availability-service:3009
+      GRPC_AUTH_URL: auth-service:50051
+      GRPC_ORDER_URL: order-service:50056
+      GRPC_PRODUCT_URL: product-service:50053
+      NATS_URL: nats://nats_1:4222
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-password}
+      ELASTICSEARCH_URL: http://es1:9200
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3000/api/v1/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  auth-service:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: apps/auth-service/Dockerfile
+    container_name: ecommerce_auth_service
+    ports:
+      - '3001:3001'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: AUTH
+      AUTH_SERVICE_PORT: '3001'
+      DATABASE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@auth_db:5432/auth_db?schema=public
+      AUTH_S0_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s0:5432/auth_s0?schema=public
+      AUTH_S0_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s0_replica:5432/auth_s0?schema=public
+      AUTH_S1_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s1:5432/auth_s1?schema=public
+      AUTH_S1_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@auth_s1_replica:5432/auth_s1?schema=public
+      GRPC_AUTH_URL: auth-service:50051
+      JWT_SECRET: ${JWT_SECRET:-super_secret_enterprise_key_change_me_in_prod}
+      JWT_EXPIRATION: ${JWT_EXPIRATION:-15m}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-super_secret_refresh_key_change_me_in_prod}
+      JWT_REFRESH_EXPIRATION: ${JWT_REFRESH_EXPIRATION:-7d}
+      NATS_URL: nats://nats_1:4222
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-password}
+      ELASTICSEARCH_URL: http://es1:9200
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3001/api/v1/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  product-service:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: apps/product-service/Dockerfile
+    container_name: ecommerce_product_service
+    ports:
+      - '3003:3003'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: PRODUCT
+      PRODUCT_SERVICE_PORT: '3003'
+      PRODUCT_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_db_master:5432/product_db?schema=public
+      PRODUCT_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_db_replica:5432/product_db?schema=public
+      PRODUCT_S0_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0:5432/product_s0?schema=public
+      PRODUCT_S0_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0_replica:5432/product_s0?schema=public
+      PRODUCT_S1_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1:5432/product_s1?schema=public
+      PRODUCT_S1_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1_replica:5432/product_s1?schema=public
+      PRODUCT_S2_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2:5432/product_s2?schema=public
+      PRODUCT_S2_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2_replica:5432/product_s2?schema=public
+      PRODUCT_S3_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3:5432/product_s3?schema=public
+      PRODUCT_S3_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3_replica:5432/product_s3?schema=public
+      GRPC_PRODUCT_URL: product-service:50053
+      JWT_SECRET: ${JWT_SECRET:-super_secret_enterprise_key_change_me_in_prod}
+      NATS_URL: nats://nats_1:4222
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-password}
+      ELASTICSEARCH_URL: http://es1:9200
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3003/api/v1/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  inventory-service:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: apps/inventory-service/Dockerfile
+    container_name: ecommerce_inventory_service
+    ports:
+      - '3004:3004'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: PRODUCT
+      INVENTORY_SERVICE_PORT: '3004'
+      PRODUCT_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_db_master:5432/product_db?schema=public
+      PRODUCT_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_db_replica:5432/product_db?schema=public
+      PRODUCT_S0_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0:5432/product_s0?schema=public
+      PRODUCT_S0_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0_replica:5432/product_s0?schema=public
+      PRODUCT_S1_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1:5432/product_s1?schema=public
+      PRODUCT_S1_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1_replica:5432/product_s1?schema=public
+      PRODUCT_S2_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2:5432/product_s2?schema=public
+      PRODUCT_S2_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2_replica:5432/product_s2?schema=public
+      PRODUCT_S3_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3:5432/product_s3?schema=public
+      PRODUCT_S3_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3_replica:5432/product_s3?schema=public
+      NATS_URL: nats://nats_1:4222
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-password}
+      ELASTICSEARCH_URL: http://es1:9200
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3004/api/v1/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  cart-service:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: apps/cart-service/Dockerfile
+    container_name: ecommerce_cart_service
+    ports:
+      - '3005:3005'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: CART
+      CART_SERVICE_PORT: '3005'
+      DATABASE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@auth_db:5432/auth_db?schema=public
+      PRODUCT_SERVICE_URL: http://product-service:3003
+      GRPC_CART_URL: cart-service:50055
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3005/api/v1/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  order-service:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: apps/order-service/Dockerfile
+    container_name: ecommerce_order_service
+    ports:
+      - '3006:3006'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: ORDER
+      ORDER_SERVICE_PORT: '3006'
+      DATABASE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@auth_db:5432/auth_db?schema=public
+      ORDER_S0_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s0:5432/order_s0?schema=public
+      ORDER_S0_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s0_replica:5432/order_s0?schema=public
+      ORDER_S1_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s1:5432/order_s1?schema=public
+      ORDER_S1_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s1_replica:5432/order_s1?schema=public
+      ORDER_S2_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s2:5432/order_s2?schema=public
+      ORDER_S2_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s2_replica:5432/order_s2?schema=public
+      ORDER_S3_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s3:5432/order_s3?schema=public
+      ORDER_S3_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s3_replica:5432/order_s3?schema=public
+      GRPC_ORDER_URL: order-service:50056
+      JWT_SECRET: ${JWT_SECRET:-super_secret_enterprise_key_change_me_in_prod}
+      NATS_URL: nats://nats_1:4222
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-password}
+      ELASTICSEARCH_URL: http://es1:9200
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3006/api/v1/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  payment-service:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: apps/payment-service/Dockerfile
+    container_name: ecommerce_payment_service
+    ports:
+      - '3007:3007'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: ORDER
+      PAYMENT_SERVICE_PORT: '3007'
+      DATABASE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@auth_db:5432/auth_db?schema=public
+      ORDER_S0_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s0:5432/order_s0?schema=public
+      ORDER_S0_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s0_replica:5432/order_s0?schema=public
+      ORDER_S1_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s1:5432/order_s1?schema=public
+      ORDER_S1_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s1_replica:5432/order_s1?schema=public
+      ORDER_S2_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s2:5432/order_s2?schema=public
+      ORDER_S2_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s2_replica:5432/order_s2?schema=public
+      ORDER_S3_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s3:5432/order_s3?schema=public
+      ORDER_S3_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@order_s3_replica:5432/order_s3?schema=public
+      NATS_URL: nats://nats_1:4222
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-password}
+      ELASTICSEARCH_URL: http://es1:9200
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3007/api/v1/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  analytics-service:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: apps/analytics-service/Dockerfile
+    container_name: ecommerce_analytics_service
+    ports:
+      - '3008:3008'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: PRODUCT
+      ANALYTICS_SERVICE_PORT: '3008'
+      DATABASE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_db_master:5432/product_db?schema=public
+      PRODUCT_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_db_master:5432/product_db?schema=public
+      PRODUCT_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_db_replica:5432/product_db?schema=public
+      PRODUCT_S0_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0:5432/product_s0?schema=public
+      PRODUCT_S0_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s0_replica:5432/product_s0?schema=public
+      PRODUCT_S1_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1:5432/product_s1?schema=public
+      PRODUCT_S1_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s1_replica:5432/product_s1?schema=public
+      PRODUCT_S2_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2:5432/product_s2?schema=public
+      PRODUCT_S2_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s2_replica:5432/product_s2?schema=public
+      PRODUCT_S3_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3:5432/product_s3?schema=public
+      PRODUCT_S3_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@product_s3_replica:5432/product_s3?schema=public
+      NATS_URL: nats://nats_1:4222
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-password}
+      CLICKHOUSE_URL: http://clickhouse:8123
+      RANKING_INTERVAL_MS: '900000'
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3008/api/v1/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+  # ---------------------------------------------------------------------------
+  # Availability service — pincode serviceability, warehouse inventory,
+  # reservation lifecycle. Own Postgres (no sharding) + Redis cache + NATS.
+  # ---------------------------------------------------------------------------
+  availability-service:
+    <<: *service-base
+    build:
+      context: .
+      dockerfile: apps/availability-service/Dockerfile
+    container_name: ecommerce_availability_service
+    ports:
+      - '3009:3009'
+    environment:
+      NODE_ENV: development
+      SERVICE_NAME: AVAILABILITY
+      AVAILABILITY_SERVICE_PORT: '3009'
+      DATABASE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@availability_db:5432/availability_db?schema=public
+      AVAILABILITY_DATABASE_WRITE_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@availability_db:5432/availability_db?schema=public
+      AVAILABILITY_DATABASE_READ_URL: postgresql://root:${POSTGRES_PASSWORD:-password}@availability_db:5432/availability_db?schema=public
+      NATS_URL: nats://nats_1:4222
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      REDIS_PASSWORD: ${REDIS_PASSWORD:-password}
+      RESERVATION_TTL_MIN: '15'
+      AVAILABILITY_CACHE_TTL_SECONDS: '600'
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:3009/availability/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+
+
+  # ---------------------------------------------------------------------------
+  # Web shop — React/Vite SPA served by nginx (http://localhost:8080)
+  # ---------------------------------------------------------------------------
+  web-shop:
+    build:
+      context: .
+      dockerfile: apps/web-shop/Dockerfile
+    container_name: ecommerce_web_shop
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    depends_on:
+      api-gateway:
+        condition: service_healthy
+    networks:
+      - ecommerce_network
+
+  # ---------------------------------------------------------------------------
+  # Observability — OpenTelemetry, Jaeger, Elasticsearch, Kibana
+  # ---------------------------------------------------------------------------
+  otel_collector:
+    image: otel/opentelemetry-collector-contrib:0.104.0
+    container_name: ecommerce_otel_collector
+    restart: unless-stopped
+    ports:
+      - '4317:4317'   # OTLP gRPC
+      - '4318:4318'   # OTLP HTTP
+      - '8889:8889'   # Prometheus exporter
+    volumes:
+      - ./infrastructure/otel/otel-collector-config.yml:/etc/otelcol-contrib/config.yaml:ro
+    depends_on:
+      jaeger:
+        condition: service_healthy
+    networks:
+      - ecommerce_network
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.60
+    container_name: ecommerce_jaeger
+    restart: unless-stopped
+    ports:
+      - '16686:16686'  # Jaeger UI
+      - '14250:14250'  # gRPC for collector
+      - '14268:14268'  # HTTP for collector
+    environment:
+      - COLLECTOR_OTLP_ENABLED=true
+    volumes:
+      - jaeger_data:/badger
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:14269/ || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    networks:
+      - ecommerce_network
+
+  es1:
+    <<: *es-base
+    container_name: ecommerce_es1
+    environment:
+      <<: *es-env
+      node.name: es1
+      discovery.seed_hosts: es2,es3
+    ports:
+      - '9200:9200'
+    volumes:
+      - es1_data:/usr/share/elasticsearch/data
+
+  es2:
+    <<: *es-base
+    container_name: ecommerce_es2
+    environment:
+      <<: *es-env
+      node.name: es2
+      discovery.seed_hosts: es1,es3
+    volumes:
+      - es2_data:/usr/share/elasticsearch/data
+
+  es3:
+    <<: *es-base
+    container_name: ecommerce_es3
+    environment:
+      <<: *es-env
+      node.name: es3
+      discovery.seed_hosts: es1,es2
+    volumes:
+      - es3_data:/usr/share/elasticsearch/data
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.14.3
+    container_name: ecommerce_kibana
+    restart: unless-stopped
+    environment:
+      - ELASTICSEARCH_HOSTS=http://es1:9200
+    ports:
+      - '5601:5601'
+    depends_on:
+      es1:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sf http://localhost:5601/api/status || exit 1']
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - ecommerce_network
+
+  # ---------------------------------------------------------------------------
+  # Monitoring — Prometheus, Alertmanager, Grafana
+  # ---------------------------------------------------------------------------
   prometheus:
     image: prom/prometheus:v2.45.0
     container_name: ecommerce_prometheus
+    restart: unless-stopped
     ports:
       - '9090:9090'
     volumes:
       - ./infrastructure/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:9090/-/healthy || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - ecommerce_network
+
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: ecommerce_alertmanager
+    restart: unless-stopped
+    ports:
+      - '9093:9093'
+    volumes:
+      - alertmanager_data:/alertmanager
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:9093/-/healthy || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
     networks:
       - ecommerce_network
 
   grafana:
     image: grafana/grafana:10.0.3
     container_name: ecommerce_grafana
+    restart: unless-stopped
     ports:
       - '3100:3000'
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASSWORD:-admin}
+      - GF_INSTALL_PLUGINS=grafana-clock-panel,grafana-piechart-panel
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./infrastructure/grafana/provisioning:/etc/grafana/provisioning
+      - ./infrastructure/grafana/dashboards:/var/lib/grafana/dashboards
     depends_on:
-      - prometheus
+      prometheus:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'curl -sf http://localhost:3000/api/health || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
     networks:
       - ecommerce_network
 
+  nats_surveyor:
+    image: natsio/nats-surveyor:latest
+    container_name: ecommerce_nats_surveyor
+    restart: unless-stopped
+    ports:
+      - '7777:7777'
+    environment:
+      - NATS_SURVEYOR_SERVERS=nats://nats_1:4222,nats://nats_2:4222,nats://nats_3:4222,nats://nats_4:4222,nats://nats_5:4222,nats://nats_3:4222
+      - NATS_SURVEYOR_COUNT=3
+      - NATS_SURVEYOR_PORT=7777
+    depends_on:
+      nats_1:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:7777/metrics || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - ecommerce_network
+
+  # ---------------------------------------------------------------------------
+  # GUIs — Redis Insight, pgAdmin
+  # ---------------------------------------------------------------------------
+  redis_insight:
+    image: redis/redisinsight:2.64
+    container_name: ecommerce_redis_insight
+    restart: unless-stopped
+    ports:
+      - '5540:5540'
+    environment:
+      - REDISINSIGHT_HOST=0.0.0.0
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://127.0.0.1:5540/ || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 60s
+    networks:
+      - ecommerce_network
+
+  pgadmin:
+    image: dpage/pgadmin4:8.14
+    container_name: ecommerce_pgadmin
+    restart: unless-stopped
+    ports:
+      - '5050:80'
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@skyline.dev
+      - PGADMIN_DEFAULT_PASSWORD=${PGADMIN_PASSWORD:-admin}
+      - PGADMIN_LISTEN_PORT=80
+      - PGADMIN_SERVER_JSON_FILE=/pgadmin4/servers.json
+      - PGADMIN_CONFIG_SERVER_MODE=False
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+      - ./infrastructure/pgadmin/servers.json:/pgadmin4/servers.json:ro
+    depends_on:
+      auth_db: { condition: service_healthy }
+      order_db: { condition: service_healthy }
+      product_db_master: { condition: service_healthy }
+    healthcheck:
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:80/misc/ping || exit 1']
+      interval: 15s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks:
+      - ecommerce_network
+
+# -----------------------------------------------------------------------------
+# Volumes
+# -----------------------------------------------------------------------------
 volumes:
   auth_db_data:
   order_db_data:
+  availability_db_data:
   product_db_master_data:
   product_db_replica_data:
-  product_db_shard_b_data:
+  auth_s0_data:
+  auth_s0_replica_data:
+  auth_s1_data:
+  auth_s1_replica_data:
+  order_s0_data:
+  order_s0_replica_data:
+  order_s1_data:
+  order_s1_replica_data:
+  order_s2_data:
+  order_s2_replica_data:
+  order_s3_data:
+  order_s3_replica_data:
+  product_s0_data:
+  product_s0_replica_data:
+  product_s1_data:
+  product_s1_replica_data:
+  product_s2_data:
+  product_s2_replica_data:
+  product_s3_data:
+  product_s3_replica_data:
   redis_data:
-  nats_data:
+  nats_1_data:
+  nats_2_data:
+  nats_3_data:
+  nats_4_data:
+  nats_5_data:
+  jaeger_data:
+  es1_data:
+  es2_data:
+  es3_data:
+  prometheus_data:
+  alertmanager_data:
+  grafana_data:
+  pgadmin_data:
+  clickhouse_data:
 
+# -----------------------------------------------------------------------------
+# Networks
+# -----------------------------------------------------------------------------
 networks:
   ecommerce_network:
     driver: bridge

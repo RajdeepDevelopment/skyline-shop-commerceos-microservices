@@ -38,6 +38,15 @@
         "tsConfigPath": "libs/auth/tsconfig.lib.json"
       }
     },
+    "availability-service": {
+      "type": "application",
+      "root": "apps/availability-service",
+      "entryFile": "main",
+      "sourceRoot": "apps/availability-service/src",
+      "compilerOptions": {
+        "tsConfigPath": "apps/availability-service/tsconfig.app.json"
+      }
+    },
     "auth-service": {
       "type": "application",
       "root": "apps/auth-service",

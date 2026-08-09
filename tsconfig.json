@@ -24,6 +24,8 @@
     "paths": {
       "@app/auth": ["libs/auth/src"],
       "@app/auth/*": ["libs/auth/src/*"],
+      "@app/aws": ["libs/aws/src"],
+      "@app/aws/*": ["libs/aws/src/*"],
       "@app/cache": ["libs/cache/src"],
       "@app/cache/*": ["libs/cache/src/*"],
       "@app/common": ["libs/common/src"],
@@ -43,7 +45,11 @@
       "@app/security": ["libs/security/src"],
       "@app/security/*": ["libs/security/src/*"],
       "@app/testing": ["libs/testing/src"],
-      "@app/testing/*": ["libs/testing/src/*"]
+      "@app/testing/*": ["libs/testing/src/*"],
+      "@app/telemetry": ["libs/telemetry/src"],
+      "@app/telemetry/*": ["libs/telemetry/src/*"]
     }
-  }
+  },
+  "include": ["apps/**/*", "libs/**/*"],
+  "exclude": ["node_modules", "dist", "test", "apps/web-shop/**", "**/*.spec.ts"]
 }

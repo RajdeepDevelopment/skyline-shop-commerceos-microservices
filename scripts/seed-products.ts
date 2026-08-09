@@ -4,13 +4,11 @@ import * as pg from 'pg';
 import * as dotenv from 'dotenv';
 import path from 'path';
 
-// Load environment variables
 dotenv.config({ path: path.join(__dirname, '../.env') });
 
 async function seed() {
   console.log('🌱 Starting product seeding from DummyJSON (TS)...');
 
-  // Ensure DATABASE_URL is set for the product database
   const productDbUrl = process.env.PRODUCT_DATABASE_WRITE_URL;
   if (productDbUrl) {
     process.env.DATABASE_URL = productDbUrl;
@@ -26,74 +24,64 @@ async function seed() {
   const prisma = new PrismaClient({ adapter });
 
   try {
-    const res = await fetch('https://dummyjson.com/products?limit=100');
+    const res = await fetch('https://dummyjson.com/products?limit=194');
     if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
 
     const data = await res.json();
-
     const products = data.products;
 
     console.log(`📦 Fetched ${products.length} products. Starting sync...`);
 
-    // Create unique categories first
-
-    const categories = Array.from(new Set(products.map((p: any) => p.category)));
-    console.log(`🏷️ Found ${categories.length} unique categories. Seeding...`);
-
-    const categoryMap = new Map();
-    for (const catName of categories) {
-      const category = await prisma.category.upsert({
-        where: { name: catName as string },
-        update: {},
-        create: { name: catName as string },
-      });
-      categoryMap.set(catName, category.id);
-    }
+    let created = 0;
+    let skipped = 0;
 
     for (const p of products) {
       const sku = `DJ-${p.id}`;
 
-      const categoryId = categoryMap.get(p.category);
-
-      // Idempotency: Check if SKU exists
-      const existing = await prisma.product.findUnique({
-        where: { sku },
-      });
-
+      const existing = await prisma.product.findUnique({ where: { sku } });
       if (existing) {
-        // Update category if it was null
-        if (!existing.categoryId && categoryId) {
-          await prisma.product.update({
-            where: { id: existing.id },
-
-            data: { categoryId },
-          });
-        }
+        skipped++;
         continue;
       }
 
       await prisma.product.create({
         data: {
           sku,
-
-          name: p.title,
-
+          title: p.title,
           description: p.description,
-
+          category: p.category,
           price: p.price,
+          discountPercentage: p.discountPercentage ?? 0,
+          rating: p.rating ?? 0,
+          stock: p.stock ?? 0,
+          tags: p.tags ?? [],
+          brand: p.brand ?? null,
+          weight: p.weight ?? null,
+          width: p.dimensions?.width ?? null,
+          height: p.dimensions?.height ?? null,
+          depth: p.dimensions?.depth ?? null,
+          warrantyInformation: p.warrantyInformation ?? null,
+          shippingInformation: p.shippingInformation ?? null,
+          availabilityStatus: p.availabilityStatus ?? 'In Stock',
+          returnPolicy: p.returnPolicy ?? null,
+          minimumOrderQuantity: p.minimumOrderQuantity ?? 1,
+          barcode: p.meta?.barcode ?? null,
+          qrCode: p.meta?.qrCode ?? null,
+          images: p.images ?? [],
+          thumbnail: p.thumbnail ?? null,
           isActive: true,
-
-          categoryId: categoryId || null,
         },
       });
 
-      console.log(`✅ Seeded: ${p.title}`);
+      created++;
+      if (created % 50 === 0) {
+        console.log(`  ✅ ${created} seeded, ${skipped} skipped...`);
+      }
     }
 
-    console.log('✨ Seeding completed successfully!');
+    console.log(`✨ Seeding completed! Created: ${created}, Skipped (existing): ${skipped}`);
   } catch (error: any) {
     console.error('❌ Seeding failed:', error.message);
-
     if (error.stack) console.error(error.stack);
   } finally {
     await prisma.$disconnect();

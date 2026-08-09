@@ -1,0 +1,73 @@
+# ---------------------------------------------------------------------------
+# Floci — Local AWS Emulator (Dev Dependency)
+#
+# Emulates 69 AWS services at http://localhost:4566 WITHOUT an AWS account,
+# auth token, or the real AWS CLI installed on the host.
+#
+# Uses the `-compat` image which bundles the AWS CLI and boto3 so you can run
+# identical AWS commands locally:
+#
+#   docker compose -f docker-compose.floci.yml up -d
+#   ./scripts/floci-aws.sh s3 mb s3://my-bucket
+#
+# When you're ready to deploy to real AWS, switch environments:
+#   ./scripts/use-aws.sh        # point at real AWS
+#   ./scripts/use-local.sh      # back to Floci local emulation
+# ---------------------------------------------------------------------------
+name: ecommerce-floci
+
+services:
+  floci:
+    image: floci/floci:latest-compat
+    container_name: ecommerce_floci
+    restart: unless-stopped
+    user: root
+    ports:
+      - '4566:4566'
+    environment:
+      FLOCI_HOSTNAME: ecommerce_floci
+      FLOCI_STORAGE_MODE: hybrid
+      FLOCI_STORAGE_PERSISTENT_PATH: /app/data
+      # AWS CLI / SDK env inside the compat image (any non-empty creds work)
+      AWS_ENDPOINT_URL: http://localhost:4566
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+    volumes:
+      - floci_data:/app/data
+      # Required for real Docker-backed services (Lambda, RDS, ElastiCache, MSK, EC2, EKS...)
+      - /var/run/docker.sock:/var/run/docker.sock
+    # Used by our own network for container-name resolution
+    networks:
+      - floci_network
+
+  # ---------------------------------------------------------------------------
+  # Floci UI — AWS-Console-style web console for the local emulator
+  #   docker compose -f docker-compose.floci.yml up -d
+  #   open http://localhost:4500
+  #
+  # Single published binary (frontend + API) on :4500; it proxies to the
+  # emulator over the floci_network, so no extra ports or CLI setup needed.
+  # ---------------------------------------------------------------------------
+  floci-ui:
+    image: floci/floci-ui:latest
+    container_name: ecommerce_floci_ui
+    restart: unless-stopped
+    ports:
+      - '4500:4500'
+    environment:
+      FLOCI_ENDPOINT: http://ecommerce_floci:4566
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+    depends_on:
+      - floci
+    networks:
+      - floci_network
+
+networks:
+  floci_network:
+    driver: bridge
+
+volumes:
+  floci_data:
