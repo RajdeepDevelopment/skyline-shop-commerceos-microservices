@@ -2,21 +2,34 @@
 
 This document establishes the production-grade Git workflow and rules for the **Skyline Shop** microservices platform.
 
+## 🔄 Workflow at a Glance
+
+```mermaid
+flowchart LR
+    A[feature/* branch] --> B[Push + open PR]
+    B --> C[CI checks: lint + unit + E2E tests]
+    C -->|pass| D[Squash & Merge PR into development]
+    C -->|fail| B
+    D --> E[Release PR: development → main]
+    E --> F[SemVer tag + release]
+```
+
 ---
 
 ## 🏗️ 1. Branching Strategy
 
 We follow a **Trunk-Based / GitFlow Hybrid** model optimized for high-velocity deployments.
 
-| Branch | State | Protection |
-| :--- | :--- | :--- |
-| `main` | Production-ready (Stable) | 🔒 Locked. Requires PR + CI success. |
-| `development` | Integration (Staging) | 🔒 Locked. Main target for feature PRs. |
-| `feature/*` | In-progress features | — |
-| `fix/*` | Hotfixes / Bug fixes | — |
-| `release/*` | Version preparation | — |
+| Branch        | State                     | Protection                              |
+| :------------ | :------------------------ | :-------------------------------------- |
+| `main`        | Production-ready (Stable) | 🔒 Locked. Requires PR + CI success.    |
+| `development` | Integration (Staging)     | 🔒 Locked. Main target for feature PRs. |
+| `feature/*`   | In-progress features      | —                                       |
+| `fix/*`       | Hotfixes / Bug fixes      | —                                       |
+| `release/*`   | Version preparation       | —                                       |
 
 ### Workflow Example:
+
 1. `development` ➔ `feature/order-api`
 2. `feature/order-api` ➔ `development` (via Squash & Merge PR)
 3. `development` ➔ `main` (via Release PR)
@@ -28,9 +41,11 @@ We follow a **Trunk-Based / GitFlow Hybrid** model optimized for high-velocity d
 We enforce the **Conventional Commits** standard (`v1.0.0`).
 
 ### Format:
+
 `<type>(<scope>): <description>`
 
 ### Types:
+
 - `feat`: A new feature (Impacts MINOR version)
 - `fix`: A bug fix (Impacts PATCH version)
 - `docs`: Documentation only
@@ -44,12 +59,14 @@ We enforce the **Conventional Commits** standard (`v1.0.0`).
 We use **Semantic Versioning (SemVer)** and `standard-version` to automate releases.
 
 ### Automated Release Command:
+
 ```bash
 # Bumps version, updates CHANGELOG.md, creates git tag
 pnpm run release
 ```
 
 ### Strategic Release:
+
 - **Major (`vX.0.0`)**: Breaking API changes, protocol shifts.
 - **Minor (`v0.X.0`)**: New feature added within a service.
 - **Patch (`v0.0.X`)**: Bug fix, performance tweak.
@@ -68,6 +85,7 @@ pnpm run release
 ## 📖 5. Release Lifecycle
 
 When code is ready for a production release:
+
 1. Merge all `feature/*` into `development`.
 2. Ensure `development` is passing all CI checks.
 3. Run `npm run release` on `development`.

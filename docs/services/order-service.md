@@ -21,6 +21,30 @@ The Order Service is the primary orchestrator of the commerce lifecycle, managin
 - **Communication**: gRPC (Internal Sync) & NATS (External Async).
 - **Currency**: Orders and linked payments are recorded in **INR**.
 
+## 🗺️ Communication Flow
+
+```mermaid
+graph TB
+    GW[API Gateway]
+    O[Order Service]
+    SAGA[Saga Orchestrator]
+    PG[(Postgres Shards ×4)]
+    OUT[Outbox Relay]
+    NATS[(NATS JetStream)]
+    I[Inventory Service]
+    P[Payment Service]
+
+    GW -- CreateOrder / GetOrder gRPC --> O
+    O --> PG
+    O --> OUT
+    OUT -- domain events --> NATS
+    O --> SAGA
+    SAGA -- ReserveStock gRPC --> I
+    SAGA -- payment.process NATS --> P
+    SAGA -. compensation / release .-> I
+    SAGA -. refund .-> P
+```
+
 ## 🗺️ Checkout / Saga Flow
 
 ```mermaid

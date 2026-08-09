@@ -2,6 +2,16 @@
 
 A comprehensive reference for the architectural terms, patterns, and technologies used throughout the E-Commerce Microservices Platform.
 
+## How the terms fit together
+
+```mermaid
+graph LR
+    GW[API Gateway] -->|gRPC| SVC[Microservices]
+    SVC -->|Choreography · NATS JetStream events| EVT[Event-Driven Architecture]
+    EVT -->|Idempotency · DLQ| DATA[Sharded Databases]
+    SVC -->|OpenPGP · Zero-Trust| DATA
+```
+
 ---
 
 ### A

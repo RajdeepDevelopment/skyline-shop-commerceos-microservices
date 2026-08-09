@@ -2,6 +2,26 @@
 
 The **Auth Service** is the security backbone of the platform, managing identity, authentication, and internal service-to-service trust.
 
+## 🗺️ Authentication Flow
+
+```mermaid
+graph LR
+    subgraph Clients
+        USER[Users]
+        GW[API Gateway]
+        SVC[Internal Services]
+    end
+    AUTH[Auth Service]
+    PG[(PostgreSQL Users & Roles)]
+
+    USER -- register / login --> AUTH
+    GW -- validate session gRPC --> AUTH
+    SVC -- PGP verify gRPC --> AUTH
+    AUTH --> PG
+    AUTH -- JWT --> USER
+    AUTH -- public PGP keys --> SVC
+```
+
 ## 🛠️ Tech Stack
 
 - **Framework**: NestJS

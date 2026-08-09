@@ -14,6 +14,23 @@ This section covers the high-level system design, patterns, and strategies that 
 - **[Security Architecture](./security-architecture.md)** - Auth, PGP, and Zero-Trust principles.
 - **[Testing Strategy](./testing-strategy.md)** - Multi-layered testing approach.
 
+## 🗺️ Documentation Map
+
+```mermaid
+graph TB
+  OV["System Overview"] --> DD["Architecture Deep Dive"]
+  DD --> SDD["System Design Deep Dive"]
+  SDD --> DB["Database Architecture"]
+  DB --> DISC["Discovery & Ranking"]
+  DISC --> SEC["Security Architecture"]
+  SEC --> RES["Resiliency Patterns"]
+  RES --> TEST["Testing Strategy"]
+  TEST --> FLOWS["Core Flows"]
+  FLOWS --> CAT["Catalog Browsing & Discovery"]
+  FLOWS --> CHK["Checkout Flow"]
+  FLOWS --> TRK["Order Tracking Flow"]
+```
+
 ## 🔄 Core Flows
 
 - **[Catalog Browsing & Discovery](../flows/catalog-browsing-flow.md)** - Search, filters, product details & reviews.
@@ -22,11 +39,11 @@ This section covers the high-level system design, patterns, and strategies that 
 
 ## 🖼️ Storefront Screenshots
 
-| **Home / Banner** | **All Products** | **Product Details** |
-| :--- | :--- | :--- |
-| ![Home](../images/home-banner.png) | ![All Products](../images/all-products.png) | ![Product Details](../images/product-details.png) |
-| **Product Reviews** | **Cart** | **Order Details** |
-| ![Reviews](../images/product-reviews.png) | ![Cart](../images/cart.png) | ![Order Details](../images/order-details.png) |
+| **Home / Banner**                         | **All Products**                            | **Product Details**                               |
+| :---------------------------------------- | :------------------------------------------ | :------------------------------------------------ |
+| ![Home](../images/home-banner.png)        | ![All Products](../images/all-products.png) | ![Product Details](../images/product-details.png) |
+| **Product Reviews**                       | **Cart**                                    | **Order Details**                                 |
+| ![Reviews](../images/product-reviews.png) | ![Cart](../images/cart.png)                 | ![Order Details](../images/order-details.png)     |
 
 ---
 

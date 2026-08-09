@@ -2,6 +2,15 @@
 
 This document outlines the engineering trajectory for the E-Commerce Microservices Platform. Our focus is on evolving from a robust microservices architecture to a hyper-scale, resilient platform.
 
+## 🧭 Roadmap at a Glance
+
+```mermaid
+graph LR
+    V10[Current · v1.0.0<br/>Microservices core, NATS JetStream, sharding] --> V11[Near-Term · v1.1.0<br/>Saga orchestration, transactional outbox]
+    V11 --> V12[Mid-Term · v1.2.0<br/>OpenTelemetry, backpressure, canary deploys]
+    V12 --> V15[Long-Term · v1.5.0+<br/>Multi-region, chaos engineering, dynamic sharding]
+```
+
 ---
 
 ## ⚡ Current Capabilities (v1.0.0)

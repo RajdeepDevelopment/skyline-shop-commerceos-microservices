@@ -22,6 +22,20 @@ We will use **Kubernetes** for container orchestration in production (though Doc
 - **Event-Driven Scaling:** For queue workers (e.g., Order Processing, Notification Service), we will use KEDA (Kubernetes Event-driven Autoscaling) to scale based on the length of NATS or BullMQ queues.
 - **Caching Layer:** Redis will be deployed in a cluster mode to scale read operations for Cart data, session info, and rate-limiting counters.
 
+## Diagram
+
+```mermaid
+graph LR
+  LOAD["Traffic spike"] --> HPA["HPA (CPU / memory)"]
+  LOAD --> KEDA["KEDA (queue length)"]
+  HPA --> STAT["Scale stateless services"]
+  KEDA --> WORK["Scale queue workers"]
+  LOAD --> DB["Database load"]
+  DB --> REPL["Read replicas"]
+  DB --> SHARD["Shard by user_id"]
+  DB --> REDIS["Redis cluster cache"]
+```
+
 ## Load Balancing
 
 - **External Load Balancing:** Cloud provider LB (AWS ALB / GCP HTTP(S) LB) will terminate SSL and route traffic to the ingress controller (Nginx Ingress).

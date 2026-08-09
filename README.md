@@ -45,58 +45,149 @@ This platform is an elite-level implementation of a modern e-commerce backend, d
 
 ## 🗺️ Documentation Portal
 
-| Layer                 | Focus                      | Links                                                                                                                                                                                                                                                                                    |
-| :-------------------- | :------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Layer                 | Focus                      | Links                                                                                                                                                                                                                                                                                                            |
+| :-------------------- | :------------------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **🏗️ Architecture**   | System design & principles | [Deep Dive](./docs/architecture/system-design-deep-dive.md) • [Overview](./docs/architecture/system-overview.md) • [Algorithms](./docs/architecture/algorithms.md) • [Database Architecture](./docs/architecture/database-architecture.md) • [Discovery & Ranking](./docs/architecture/discovery-and-ranking.md) |
-| **🛡️ Reliability**    | Scaling & Resiliency       | [Scaling & Sharding](./docs/infrastructure/scaling-and-sharding.md) • [Resiliency Patterns](./docs/architecture/resiliency-patterns.md) • [Testing](./docs/architecture/testing-strategy.md)                                                                                             |
-| **🔐 Security**       | Protection & Identity      | [Security Architecture](./docs/architecture/security-architecture.md) • [Checkout Flow](./docs/flows/checkout-flow.md) • [Security Policy](./SECURITY.md)                                                                                                                                |
-| **🧩 Services**       | Domain Implementation      | [API Gateway](./apps/api-gateway/README.md) • [Order Service](./apps/order-service/README.md) • [Full Catalog](./docs/services/README.md)                                                                                                                                                |
-| **📈 Observability**  | Metrics & Monitoring       | [Monitoring Strategy](./docs/infrastructure/observability.md) • [Glossary](./docs/GLOSSARY.md)                                                                                                                                                                                           |
-| **🛠️ Infrastructure** | Tooling & DevOps           | [Getting Started](./docs/infrastructure/getting-started.md) • [Docker Setup](./docs/infrastructure/docker-setup.md) • [AWS & Floci](./docs/infrastructure/aws-and-floci.md) • [Nginx Proxy](./docs/infrastructure/nginx.md) • [Roadmap](./docs/ROADMAP.md)                                    |
+| **🛡️ Reliability**    | Scaling & Resiliency       | [Scaling & Sharding](./docs/infrastructure/scaling-and-sharding.md) • [Resiliency Patterns](./docs/architecture/resiliency-patterns.md) • [Testing](./docs/architecture/testing-strategy.md)                                                                                                                     |
+| **🔐 Security**       | Protection & Identity      | [Security Architecture](./docs/architecture/security-architecture.md) • [Checkout Flow](./docs/flows/checkout-flow.md) • [Security Policy](./SECURITY.md)                                                                                                                                                        |
+| **🧩 Services**       | Domain Implementation      | [API Gateway](./apps/api-gateway/README.md) • [Order Service](./apps/order-service/README.md) • [Full Catalog](./docs/services/README.md)                                                                                                                                                                        |
+| **📈 Observability**  | Metrics & Monitoring       | [Monitoring Strategy](./docs/infrastructure/observability.md) • [Glossary](./docs/GLOSSARY.md)                                                                                                                                                                                                                   |
+| **🛠️ Infrastructure** | Tooling & DevOps           | [Getting Started](./docs/infrastructure/getting-started.md) • [Docker Setup](./docs/infrastructure/docker-setup.md) • [AWS & Floci](./docs/infrastructure/aws-and-floci.md) • [Nginx Proxy](./docs/infrastructure/nginx.md) • [Roadmap](./docs/ROADMAP.md)                                                       |
 
 ---
 
 ## 🏗️ System Reference Architecture
 
+The platform is a **fully decoupled microservices system** — every service owns its
+data, communicates over **gRPC** for synchronous calls and **NATS JetStream** for
+asynchronous events, and is independently scalable and deployable.
+
 ```mermaid
-graph TD
-    subgraph "Edge Layer"
-        LB[Nginx Load Balancer]
-        GW[API Gateway]
+graph TB
+    subgraph Clients["Client Layer"]
+        Web["Web Shop<br/>React 19 + Vite + TS"]
+        Mobile["Mobile App"]
+        Admin["Admin Dashboard"]
     end
 
-    subgraph "Core Domain Services"
-        Auth[Auth Service]
-        Products[Product Service]
-        Orders[Order Service]
-        Users[User Service]
+    subgraph Edge["Edge Layer"]
+        LB["Nginx Load Balancer<br/>(TLS · WAF · rate limiting)"]
+        GW["API Gateway — NestJS<br/>/api/v1/* · JWT · routing · Swagger"]
     end
 
-    subgraph "Support & Fulfillment"
-        Inv[Inventory Service]
-        Pay[Payment Service]
-        Notif[Notification Service]
-        Analytics[Analytics Service]
+    subgraph Core["Core Domain Services — NestJS, gRPC, own database per service"]
+        Auth["Auth Service<br/>(JWT · bcrypt · RBAC)"]
+        User["User Service<br/>(profiles · preferences)"]
+        Product["Product Service<br/>(catalog · search · ranking)"]
+        Cart["Cart Service<br/>(Redis-backed)"]
+        Order["Order Service<br/>(saga orchestrator)"]
+        Inv["Inventory Service<br/>(stock · reservations)"]
+        Avail["Availability Service<br/>(pincode SLA)"]
+        Pay["Payment Service<br/>(gateway · idempotent)"]
+        Notif["Notification Service<br/>(email · SMS · push)"]
+        Analytics["Analytics Service<br/>(ClickHouse sink)"]
     end
 
-    subgraph "Data & Event Plane"
-        NATS((NATS JetStream))
-        Redis[(Redis Cache)]
-        PG[(PostgreSQL Shards)]
+    subgraph DataPlane["Data & Event Plane"]
+        NATS["NATS JetStream<br/>(durable event bus + outbox)"]
+        RD[("Redis<br/>cache · cart · sessions · locks")]
+        PG[("PostgreSQL<br/>sharded ×4 + read replicas")]
+        ES[("Elasticsearch<br/>3-node · product search")]
+        CH[("ClickHouse<br/>columnar OLAP")]
     end
 
-    Client[Web/Mobile] --> LB
+    subgraph Obs["Observability Layer"]
+        OTel["OpenTelemetry"]
+        Prom["Prometheus"]
+        Grafana["Grafana"]
+        Jaeger["Jaeger"]
+    end
+
+    subgraph CD["CI/CD Layer"]
+        GHA["GitHub Actions<br/>(build · lint · test)"]
+        Argo["ArgoCD<br/>(GitOps)"]
+        Harbor["Container Registry"]
+    end
+
+    Web & Mobile & Admin --> LB
     LB --> GW
-    GW --> Auth
-    GW --> Core
 
-    Core --> NATS
-    NATS --> Support
+    GW -- gRPC --> Auth
+    GW -- gRPC --> Product
+    GW -- gRPC --> Cart
+    GW -- gRPC --> Order
+    Auth --> User
 
-    Products --> Redis
-    Orders --> PG
-    Products --> PG
+    Order -- gRPC --> Inv
+    Order -- gRPC --> Pay
+    Order -->|"order.* events"| NATS
+
+    Product -->|index| ES
+    Cart --> RD
+    Product & Order --> PG
+    Analytics --> CH
+    NATS --> Notif
+    NATS --> Analytics
+    Avail --> RD
+
+    GW & Product & Order & Inv & Pay & Notif --> OTel
+    OTel --> Prom
+    OTel --> Jaeger
+    Prom --> Grafana
+
+    GHA --> Harbor
+    Argo --> GW
 ```
+
+### 🔄 End-to-End Checkout Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant W as Web Shop
+    participant G as API Gateway
+    participant C as Cart Service
+    participant O as Order Service
+    participant OB as Outbox
+    participant N as NATS JetStream
+    participant S as Saga Orchestrator
+    participant I as Inventory
+    participant P as Payment
+    participant Nf as Notification
+
+    W->>G: POST /api/v1/orders (Idempotency-Key)
+    G->>C: gRPC GetCart
+    G->>O: gRPC CreateOrder
+    O->>O: persist order + outbox row (same TX)
+    O->>N: publish order.created
+    N->>S: consume order.created
+    S->>I: reserve stock
+    alt stock available
+        S->>P: process payment
+        S->>O: mark CONFIRMED
+        N->>Nf: send confirmation (BullMQ)
+    else out of stock / payment failed
+        S->>I: release stock (compensate)
+        S->>O: mark CANCELLED
+    end
+    O-->>G: orderId
+    G-->>W: 201 Created
+```
+
+### 🧩 Component Legend
+
+| Layer             | Technology                           | Responsibility                                         |
+| :---------------- | :----------------------------------- | :----------------------------------------------------- |
+| **Edge**          | Nginx + API Gateway                  | TLS, WAF, rate limiting, JWT auth, `/api/v1/*` routing |
+| **Services**      | NestJS (Node 24)                     | 12 independently deployable domain services over gRPC  |
+| **Events**        | NATS JetStream                       | Durable business events, outbox relay, DLQs            |
+| **Jobs**          | BullMQ                               | Background tasks (notifications, sync)                 |
+| **Data**          | PostgreSQL + PgBouncer               | ACID source of truth, app-level sharding ×4 + replicas |
+| **Search**        | Elasticsearch ×3                     | Product search, filters, recommendations               |
+| **Cache**         | Redis                                | Cart, sessions, idempotency keys, distributed locks    |
+| **Analytics**     | ClickHouse                           | Columnar OLAP for behavior + sales events              |
+| **Observability** | OTel / Prometheus / Grafana / Jaeger | Traces, metrics, SLIs, dashboards                      |
+| **Delivery**      | GitHub Actions + ArgoCD + Harbor     | Build, test, GitOps deploy, registry                   |
 
 ---
 
@@ -104,14 +195,14 @@ graph TD
 
 A modern storefront experience powered by the microservices backend — built with **React 19**, **TypeScript**, **Tailwind CSS**, **Zustand**, and **React Query**.
 
-| | |
-| :--- | :--- |
-| **🏠 Home / Banner & Navbar** | **🛍️ Catalog (All Products)** |
-| ![Home & Navbar](./docs/images/home-banner.png) | ![All Products](./docs/images/all-products.png) |
-| **📦 Product Details** | **⭐ Product Reviews** |
+|                                                       |                                                       |
+| :---------------------------------------------------- | :---------------------------------------------------- |
+| **🏠 Home / Banner & Navbar**                         | **🛍️ Catalog (All Products)**                         |
+| ![Home & Navbar](./docs/images/home-banner.png)       | ![All Products](./docs/images/all-products.png)       |
+| **📦 Product Details**                                | **⭐ Product Reviews**                                |
 | ![Product Details](./docs/images/product-details.png) | ![Product Reviews](./docs/images/product-reviews.png) |
-| **🛒 Cart** | **📦 Order Details / Tracking** |
-| ![Cart](./docs/images/cart.png) | ![Order Details](./docs/images/order-details.png) |
+| **🛒 Cart**                                           | **📦 Order Details / Tracking**                       |
+| ![Cart](./docs/images/cart.png)                       | ![Order Details](./docs/images/order-details.png)     |
 
 > Full end-to-end flows: [Browsing & Catalog](./docs/flows/catalog-browsing-flow.md) • [Checkout](./docs/flows/checkout-flow.md) • [Order Tracking](./docs/flows/track-order-flow.md)
 
@@ -130,32 +221,32 @@ Propel your skills through our context-driven learning trajectory:
 
 ## 🛠️ Technology Matrix
 
-| Category          | Technology           | Decision Rationale                                                  |
-| :---------------- | :------------------- | :------------------------------------------------------------------ |
-| **Runtime**       | NestJS (Node.js 24)  | Enterprise-grade modularity and dependency injection.               |
-| **Frontend**      | React 19 + Vite      | Fast, type-safe storefront with TanStack Query + Zustand.           |
-| **Database**      | PostgreSQL + Prisma  | Strong consistency with type-safe, performance-optimized queries.   |
-| **Sharding**      | Application-level PG | Horizontal partitioning of product (×4) & order (×4) shards + replicas. |
-| **Search**        | Elasticsearch (×3)   | Real-time product search, filters, and recommendations.            |
-| **Messaging**     | NATS JetStream       | Ultra-low latency, persistent event-store for asynchronous flows.   |
-| **In-Memory**     | Redis                | Sub-millisecond data access for carts, sessions, and rate-limiting. |
-| **RPC**           | gRPC (Protobuf)      | High-speed binary protocol for synchronous internal communication.  |
-| **Analytics**     | ClickHouse           | Columnar OLAP sink for behavior events and sales reporting.         |
-| **Observability** | Prometheus / Grafana | Real-time telemetry, plus Jaeger (traces) & OpenTelemetry.          |
-| **Infrastructure**| Docker Compose       | 63-container stack: nginx LB, NATS cluster, pgBouncer, ESM.         |
+| Category           | Technology           | Decision Rationale                                                      |
+| :----------------- | :------------------- | :---------------------------------------------------------------------- |
+| **Runtime**        | NestJS (Node.js 24)  | Enterprise-grade modularity and dependency injection.                   |
+| **Frontend**       | React 19 + Vite      | Fast, type-safe storefront with TanStack Query + Zustand.               |
+| **Database**       | PostgreSQL + Prisma  | Strong consistency with type-safe, performance-optimized queries.       |
+| **Sharding**       | Application-level PG | Horizontal partitioning of product (×4) & order (×4) shards + replicas. |
+| **Search**         | Elasticsearch (×3)   | Real-time product search, filters, and recommendations.                 |
+| **Messaging**      | NATS JetStream       | Ultra-low latency, persistent event-store for asynchronous flows.       |
+| **In-Memory**      | Redis                | Sub-millisecond data access for carts, sessions, and rate-limiting.     |
+| **RPC**            | gRPC (Protobuf)      | High-speed binary protocol for synchronous internal communication.      |
+| **Analytics**      | ClickHouse           | Columnar OLAP sink for behavior events and sales reporting.             |
+| **Observability**  | Prometheus / Grafana | Real-time telemetry, plus Jaeger (traces) & OpenTelemetry.              |
+| **Infrastructure** | Docker Compose       | 63-container stack: nginx LB, NATS cluster, pgBouncer, ESM.             |
 
 ---
 
 ## 📈 Scale & Performance Targets
 
-| Dimension                | Target                                   | How It's Achieved                                                      |
-| :----------------------- | :--------------------------------------- | :--------------------------------------------------------------------- |
-| **Registered users**     | **10M+**                                 | Stateless services, JWT sessions, sharded identity stores.             |
-| **Product catalog**      | **1M+ SKUs**                             | 4-way PostgreSQL sharding + Elasticsearch indexing.                    |
-| **Concurrent sessions**  | **10k+**                                 | Horizontal service scaling behind nginx + Redis session cache.         |
-| **Order throughput**     | Thousands of orders / min                | NATS JetStream buffering + Saga orchestration with idempotency.        |
-| **Search latency**       | < 100 ms p99                            | 3-node Elasticsearch cluster with ranked queries & caching.            |
-| **Checkout consistency** | Exactly-once                             | Idempotency keys, outbox pattern, and saga compensation.               |
+| Dimension                | Target                    | How It's Achieved                                               |
+| :----------------------- | :------------------------ | :-------------------------------------------------------------- |
+| **Registered users**     | **10M+**                  | Stateless services, JWT sessions, sharded identity stores.      |
+| **Product catalog**      | **1M+ SKUs**              | 4-way PostgreSQL sharding + Elasticsearch indexing.             |
+| **Concurrent sessions**  | **10k+**                  | Horizontal service scaling behind nginx + Redis session cache.  |
+| **Order throughput**     | Thousands of orders / min | NATS JetStream buffering + Saga orchestration with idempotency. |
+| **Search latency**       | < 100 ms p99              | 3-node Elasticsearch cluster with ranked queries & caching.     |
+| **Checkout consistency** | Exactly-once              | Idempotency keys, outbox pattern, and saga compensation.        |
 
 ---
 
@@ -192,9 +283,9 @@ The installer is interactive and adapts to your machine:
 - picks a **size**:
   | profile | what you get | containers |
   |---------|-------------|-----------|
-  | `lite`  | no shards, replicas, ES, or monitoring — for low-end devices | ~14 |
-  | `mid`   | shards + replicas, single-node Elasticsearch + Kibana, pgAdmin/RedisInsight, nginx LB | ~38 |
-  | `full`  | everything, identical to `docker compose up -d` | 63 |
+  | `lite` | no shards, replicas, ES, or monitoring — for low-end devices | ~14 |
+  | `mid` | shards + replicas, single-node Elasticsearch + Kibana, pgAdmin/RedisInsight, nginx LB | ~38 |
+  | `full` | everything, identical to `docker compose up -d` | 63 |
   | `custom`| pick shard counts, replicas, ES, observability, GUIs, NATS nodes, seed size | any |
 - checks and auto-starts Docker, warns about missing tools, and creates `.env` from `.env.example`
 - the resolved stack is written to `.setup/docker-compose.yml` (remembered in `.setup/active`) and

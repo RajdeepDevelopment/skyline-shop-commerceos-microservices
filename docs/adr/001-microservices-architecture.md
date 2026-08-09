@@ -18,6 +18,17 @@ We will adopt a Distributed Microservices Architecture using NestJS and TypeScri
   - **Asynchronous:** NATS JetStream and BullMQ will be used for event-driven workflows (e.g., Order Created event triggering Inventory decrement and Payment processing) and background jobs.
 - **API Gateway:** A central API Gateway pattern will expose external REST/GraphQL APIs and route them to internal gRPC/HTTP services. Nginx will sit in front of the API Gateway as a reverse proxy and load balancer.
 
+## Diagram
+
+```mermaid
+graph LR
+  A["Monolith"] -->|"rejected: tight coupling, single deploy unit"| D{Decision}
+  B["Distributed Microservices"] -->|"chosen: independent scale & teams"| D
+  D --> G["gRPC (sync)"]
+  D --> N["NATS JetStream / BullMQ (async)"]
+  D --> API["API Gateway + Nginx"]
+```
+
 ## Consequences
 
 **Positive:**

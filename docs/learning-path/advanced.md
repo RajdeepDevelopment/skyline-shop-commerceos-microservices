@@ -17,6 +17,22 @@ In a system this size, things _will_ fail. Advanced engineering is about **grace
 
 We use CQRS to ensure that a surge in users viewing their "Order History" (Queries) doesn't slow down the "Checkout" process (Commands).
 
+### Diagram
+
+```mermaid
+graph LR
+  C["Client"] --> GW["API Gateway"]
+  GW -->|"Commands (checkout)"| ORD["Order Service (write path)"]
+  GW -->|"Queries (order history)"| HIST["Order History / read path"]
+  ORD --> WDB["Write DB (sharded primary)"]
+  HIST --> RDB["Read model (replica / ClickHouse)"]
+  ORD -->|"order.created"| NATS["NATS JetStream"]
+  NATS --> HIST
+  NATS --> RES["Resiliency (retries, DLQ)"]
+  SEC["Zero-Trust + PGP signing"] -.-> ORD
+  SEC -.-> HIST
+```
+
 ---
 
 [⬅️ Back to Roadmap](./engineering-roadmap.md)
