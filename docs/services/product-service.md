@@ -2,6 +2,31 @@
 
 The **Product Service** manages the core commerce catalog — products, categories, search, reviews, and recommendations — built for a **1M+ SKU** catalog.
 
+## 🗺️ Catalog Architecture
+
+```mermaid
+graph TB
+    subgraph Write Path
+        ADMIN[Admin / Catalog Importer]
+    end
+    PS[Product Service]
+    PG[(Postgres Shards ×4)]
+    OUT[Outbox Relay]
+    NATS[(NATS JetStream)]
+    ES[(Elasticsearch Cluster)]
+    RD[(Redis Cache)]
+    BEV[Behavior Events]
+
+    ADMIN --> PS
+    PS --> PG
+    PS --> OUT
+    OUT --> NATS
+    NATS -. index .-> ES
+    PS -. search .-> ES
+    PS -. hot results .-> RD
+    BEV -. recommendations .-> ES
+```
+
 ## 🛠️ Tech Stack
 
 - **Framework**: NestJS

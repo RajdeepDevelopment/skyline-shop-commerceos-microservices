@@ -1,6 +1,6 @@
 # 🗄️ Database Architecture
 
-One database technology cannot serve every workload well. Skyline Shop uses **five complementary stores**, each chosen for the shape of the data and the access pattern it serves — and this document explains the *why* behind that arrangement.
+One database technology cannot serve every workload well. Skyline Shop uses **five complementary stores**, each chosen for the shape of the data and the access pattern it serves — and this document explains the _why_ behind that arrangement.
 
 ```
                     ┌────────────────────────────────────────────────┐
@@ -20,13 +20,13 @@ One database technology cannot serve every workload well. Skyline Shop uses **fi
 
 ## 🧱 The Five Stores
 
-| Store | Role | What it holds | Access pattern |
-| :--- | :--- | :--- | :--- |
-| **PostgreSQL** | Source of truth | Users, products, inventory, orders, payments, carts, reviews, outbox | Strongly-consistent transactions |
-| **Redis** | Hot in-memory cache + counters | Carts, sessions, idempotency keys, ranked lists, recently-viewed | Sub-ms reads, TTLs |
-| **Elasticsearch** | Search & discovery | Denormalized product index | Relevance-ranked queries |
-| **ClickHouse** | OLAP analytics | Behaviour events (views, searches, purchases) | High-volume inserts, range aggregates |
-| **NATS JetStream** | Durable event bus | Domain events, DLQs | At-least-once async delivery |
+| Store              | Role                           | What it holds                                                        | Access pattern                        |
+| :----------------- | :----------------------------- | :------------------------------------------------------------------- | :------------------------------------ |
+| **PostgreSQL**     | Source of truth                | Users, products, inventory, orders, payments, carts, reviews, outbox | Strongly-consistent transactions      |
+| **Redis**          | Hot in-memory cache + counters | Carts, sessions, idempotency keys, ranked lists, recently-viewed     | Sub-ms reads, TTLs                    |
+| **Elasticsearch**  | Search & discovery             | Denormalized product index                                           | Relevance-ranked queries              |
+| **ClickHouse**     | OLAP analytics                 | Behaviour events (views, searches, purchases)                        | High-volume inserts, range aggregates |
+| **NATS JetStream** | Durable event bus              | Domain events, DLQs                                                  | At-least-once async delivery          |
 
 ---
 
@@ -52,15 +52,33 @@ product_db × 4 (shards)     order_db × 4 (shards)
 
 Each domain is a **separate database** so it can be scaled, backed up, and owned independently. Within the hot domains (product, order), data is **sharded 4 ways** by key (djb2 hash → `% 4`) so no single Postgres instance holds the whole catalog or all orders. Each shard has a **primary + read replica** and is fronted by **pgBouncer** (write pool / read pool) for connection efficiency.
 
+### Diagram — sharded PostgreSQL topology
+
+```mermaid
+flowchart TB
+  GW["API Gateway"] --> PBW["pgBouncer (write pool)"]
+  GW --> PBR["pgBouncer (read pool)"]
+  PBW --> ROUTER["Shard Router (djb2 hash % 4)"]
+  ROUTER --> S0["shard 0 (product_db / order_db)"]
+  ROUTER --> S1["shard 1"]
+  ROUTER --> S2["shard 2"]
+  ROUTER --> S3["shard 3"]
+  S0 --> R0["read replica"]
+  S1 --> R1["read replica"]
+  S2 --> R2["read replica"]
+  S3 --> R3["read replica"]
+  PBR --> R0 & R1 & R2 & R3
+```
+
 ### Why this arrangement
 
-| Why | Reason |
-| :--- | :--- |
-| One DB per domain | Independent scaling, failure isolation, and ownership |
-| Shard product/order | Write throughput is the bottleneck at 10M+ users; splitting by key scales writes horizontally |
-| Read replicas | Browse-heavy e-commerce is ~90% reads; replicas absorb them without competing with writes |
-| pgBouncer pools | Postgres can't handle thousands of idle connections; pooling reuses them |
-| `outbox_messages` in order DB | Events commit atomically with the order → zero event loss |
+| Why                           | Reason                                                                                        |
+| :---------------------------- | :-------------------------------------------------------------------------------------------- |
+| One DB per domain             | Independent scaling, failure isolation, and ownership                                         |
+| Shard product/order           | Write throughput is the bottleneck at 10M+ users; splitting by key scales writes horizontally |
+| Read replicas                 | Browse-heavy e-commerce is ~90% reads; replicas absorb them without competing with writes     |
+| pgBouncer pools               | Postgres can't handle thousands of idle connections; pooling reuses them                      |
+| `outbox_messages` in order DB | Events commit atomically with the order → zero event loss                                     |
 
 ---
 
@@ -133,6 +151,30 @@ Sub-millisecond pub/sub with **durable streams** gives at-least-once delivery, a
 2. **Eventually-consistent fan-out** — the authoritative write goes to Postgres; ES/ClickHouse/Redis are updated asynchronously. The read path is optimized per surface (search off ES, rankings off Redis, dashboards off ClickHouse).
 3. **Scale independently** — shard product/order DBs horizontally, add ES nodes for search, scale analytics ingest in ClickHouse, and never touch the transactional path.
 4. **Event-driven decoupling** — services own their stores and communicate through NATS, so no service reaches into another's database.
+
+### Diagram — a sharded write fan-out
+
+```mermaid
+sequenceDiagram
+  participant SVC as Order Service
+  participant PB as pgBouncer
+  participant DB as Shard (primary)
+  participant OUT as outbox_messages
+  participant NATS as NATS JetStream
+  participant ES as Elasticsearch
+  participant CH as ClickHouse
+  participant RD as Redis
+
+  SVC->>PB: write order (transaction)
+  PB->>DB: route by key (djb2 hash % 4)
+  DB->>DB: insert order + outbox_messages (atomic)
+  DB-->>SVC: commit ack
+  SVC->>SVC: outbox relay reads outbox_messages
+  SVC->>NATS: publish order.created
+  NATS->>ES: async catalog/search indexer
+  NATS->>CH: async behaviour events ingest
+  NATS->>RD: async ranking / cart updates
+```
 
 ---
 

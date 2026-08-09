@@ -2,6 +2,30 @@
 
 The **Notification Service** is a purely event-driven component that communicates with users across various channels.
 
+## 🗺️ Event Flow
+
+```mermaid
+graph LR
+    subgraph Producers
+        ORDER[Order Service]
+        PAY[Payment Service]
+    end
+    NATS[(NATS JetStream)]
+    NOTIFY[Notification Service]
+    subgraph Channels
+        EMAIL[Email - SendGrid]
+        SMS[SMS - Twilio]
+        PUSH[Push]
+    end
+
+    ORDER -- order.confirmed --> NATS
+    PAY -- payment.failed --> NATS
+    NATS -- consume --> NOTIFY
+    NOTIFY --> EMAIL
+    NOTIFY --> SMS
+    NOTIFY --> PUSH
+```
+
 ## 🛠️ Tech Stack
 
 - **Framework**: NestJS

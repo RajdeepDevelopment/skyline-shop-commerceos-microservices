@@ -2,6 +2,22 @@
 
 The **Inventory Service** is responsible for real-time stock management and ensuring product availability across the platform.
 
+## 🗺️ Reservation Flow
+
+```mermaid
+graph TB
+    SAGA[Saga Orchestrator / Order Service]
+    INV[Inventory Service]
+    PG[(PostgreSQL Stock)]
+    NATS[(NATS JetStream)]
+
+    SAGA -- ReserveStock gRPC --> INV
+    INV -- optimistic lock --> PG
+    PG --> INV
+    INV -- inventory.reserved --> SAGA
+    INV -. restock / low-stock events .-> NATS
+```
+
 ## 🛠️ Tech Stack
 
 - **Framework**: NestJS

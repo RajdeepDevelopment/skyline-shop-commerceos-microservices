@@ -5,18 +5,30 @@ This guide covers two things:
 1. **Running AWS-shaped services locally with Floci** — a dev-only local AWS emulator, so you can develop and test with the **exact same AWS commands** you'll use in production, without an AWS account.
 2. **Deploying to real AWS** — Terraform IaC in [`infrastructure/aws`](../../infrastructure/aws) that provisions EKS + managed services, designed so the app itself stays **cloud-portable** (plain Kubernetes, no AWS lock-in in the application layer).
 
+## Deployment topology
+
+```mermaid
+graph LR
+    DEV[Developer] -->|git push / PR| CI[GitHub Actions CI/CD]
+    CI -->|build & push image| REG[ECR / Harbor]
+    REG --> EKS[EKS Cluster]
+    ARGO[ArgoCD] -->|GitOps sync k8s/overlays| EKS
+    EKS --> SVC[Microservices]
+    EKS --> ING[API Gateway / ALB Ingress]
+```
+
 ---
 
 ## Why Floci?
 
-| Capability | Floci (local) | Real AWS |
-|---|---|---|
-| AWS account required | No | Yes |
-| Auth token required | No | No |
-| AWS CLI on host required | No (bundled in compat image) | No (SDK/CLI optional) |
-| Services available | 69 emulated at `localhost:4566` | Real |
-| Cost | Free | Usage-based |
-| Perfectly identical behavior | Compatible, not bit-identical | — |
+| Capability                   | Floci (local)                   | Real AWS              |
+| ---------------------------- | ------------------------------- | --------------------- |
+| AWS account required         | No                              | Yes                   |
+| Auth token required          | No                              | No                    |
+| AWS CLI on host required     | No (bundled in compat image)    | No (SDK/CLI optional) |
+| Services available           | 69 emulated at `localhost:4566` | Real                  |
+| Cost                         | Free                            | Usage-based           |
+| Perfectly identical behavior | Compatible, not bit-identical   | —                     |
 
 Floci lets you run `aws s3 mb ...`, `aws dynamodb create-table ...`, etc., **locally** with no account, no auth token, and no feature gates.
 
@@ -69,23 +81,23 @@ source ./scripts/use-env.sh local
 
 This only flips the `AWS_*` block in `.env`. The application reads those vars through the shared `@app/aws` library (`AwsConfigService`) — **no code changes are needed when switching environments**.
 
-| Env var | Floci (local) | Real AWS |
-|---|---|---|
-| `AWS_ENDPOINT_URL` | `http://localhost:4566` | *(empty / unset)* |
-| `AWS_ACCESS_KEY_ID` | `test` | your real access key |
-| `AWS_SECRET_ACCESS_KEY` | `test` | your real secret key |
-| `AWS_DEFAULT_REGION` | `us-east-1` | any |
-| `AWS_STORAGE_MODE` | `local` | `aws` |
+| Env var                 | Floci (local)           | Real AWS             |
+| ----------------------- | ----------------------- | -------------------- |
+| `AWS_ENDPOINT_URL`      | `http://localhost:4566` | _(empty / unset)_    |
+| `AWS_ACCESS_KEY_ID`     | `test`                  | your real access key |
+| `AWS_SECRET_ACCESS_KEY` | `test`                  | your real secret key |
+| `AWS_DEFAULT_REGION`    | `us-east-1`             | any                  |
+| `AWS_STORAGE_MODE`      | `local`                 | `aws`                |
 
 ### 4. Services commonly used
 
-| AWS service | Local endpoint |
-|---|---|
-| S3 | `http://localhost:4566` |
-| DynamoDB | `http://localhost:4566` |
-| SQS / SNS | `http://localhost:4566` |
-| Secrets Manager / SSM | `http://localhost:4566` |
-| IAM / STS | `http://localhost:4566` |
+| AWS service                             | Local endpoint                               |
+| --------------------------------------- | -------------------------------------------- |
+| S3                                      | `http://localhost:4566`                      |
+| DynamoDB                                | `http://localhost:4566`                      |
+| SQS / SNS                               | `http://localhost:4566`                      |
+| Secrets Manager / SSM                   | `http://localhost:4566`                      |
+| IAM / STS                               | `http://localhost:4566`                      |
 | Lambda, RDS, ElastiCache, MSK, EC2, EKS | `http://localhost:4566` (real Docker-backed) |
 
 Any credentials work — `test` / `test` is the default. Any region works.
@@ -125,10 +137,10 @@ After a fresh start (`docker compose -f docker-compose.floci.yml up -d`), seed d
 pnpm floci:seed            # idempotent: buckets, tables, queues, secrets, EKS cluster, RDS instance
 ```
 
-| URL | What |
-|---|---|
-| `http://localhost:4500` | Floci UI web console |
-| `http://localhost:4566` | AWS API endpoint (S3/DynamoDB/SQS/...) |
+| URL                                   | What                                    |
+| ------------------------------------- | --------------------------------------- |
+| `http://localhost:4500`               | Floci UI web console                    |
+| `http://localhost:4566`               | AWS API endpoint (S3/DynamoDB/SQS/...)  |
 | `http://localhost:4566/_floci/health` | Emulator health + enabled services JSON |
 
 ---
@@ -139,13 +151,13 @@ Once local development works against Floci, deploying to AWS is a switch of envi
 
 ### Architecture on AWS
 
-| Local (dev, Floci/Docker) | AWS (managed, Terraform) |
-|---|---|
+| Local (dev, Floci/Docker)          | AWS (managed, Terraform)                    |
+| ---------------------------------- | ------------------------------------------- |
 | Docker Compose Postgres containers | `aws_db_instance` RDS PostgreSQL (optional) |
-| Docker Compose Redis | `aws_elasticache_cluster` Redis (optional) |
-| Docker Compose Elasticsearch | `aws_opensearch_domain` (optional) |
-| Nginx + API Gateway | EKS + ALB (K8s-native ingress) |
-| K8s manifests (`k8s/`) | Same manifests on EKS via ArgoCD |
+| Docker Compose Redis               | `aws_elasticache_cluster` Redis (optional)  |
+| Docker Compose Elasticsearch       | `aws_opensearch_domain` (optional)          |
+| Nginx + API Gateway                | EKS + ALB (K8s-native ingress)              |
+| K8s manifests (`k8s/`)             | Same manifests on EKS via ArgoCD            |
 
 > Managed data services (RDS/ElastiCache/OpenSearch) are **off by default** in `infrastructure/aws`. The app's data-plane endpoints are supplied per environment — the in-cluster Postgres/Redis/Elasticsearch manifests were removed from `k8s/` in favor of AWS-managed equivalents. Enable the `enable_*` flags per environment, then fill the endpoints into the environment's overlay ConfigMap (`k8s/overlays/<env>/configmap-data.yml`) from `terraform output`.
 
@@ -197,17 +209,17 @@ This provisions:
 
 The whole switch is **one command** — it only edits the `AWS_*` block in `.env`:
 
-| Command | Effect |
-|---|---|
+| Command                                           | Effect                                                                                                                                       |
+| ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
 | `./scripts/deploy.sh floci` / `pnpm deploy:floci` | **One command** — start emulator, seed AWS resources & secrets, build/push images, render & apply the k8s manifests to the Floci k3s cluster |
-| `./scripts/deploy.sh aws` / `pnpm deploy:aws` | Same pipeline against real AWS: push to ECR, then ArgoCD syncs `k8s/overlays/production` |
-| `./scripts/use-env.sh local` / `pnpm aws:local` | Points `.env` at Floci `localhost:4566` |
-| `./scripts/use-env.sh aws` / `pnpm aws:prod` | Clears `AWS_ENDPOINT_URL` so SDKs use real AWS |
-| `./scripts/use-env.sh status` / `pnpm aws:status` | Shows current mode |
-| `./scripts/floci-aws.sh <cmd>` | Runs an AWS CLI command against Floci |
-| `pnpm floci:start` / `pnpm floci:stop` | Start / stop Floci + UI compose stack |
-| `pnpm floci:seed` | Create demo resources (buckets, tables, queues, secrets, EKS cluster, RDS) |
-| `pnpm floci:logs` / `pnpm floci:ui` | Tail emulator logs / open web console |
+| `./scripts/deploy.sh aws` / `pnpm deploy:aws`     | Same pipeline against real AWS: push to ECR, then ArgoCD syncs `k8s/overlays/production`                                                     |
+| `./scripts/use-env.sh local` / `pnpm aws:local`   | Points `.env` at Floci `localhost:4566`                                                                                                      |
+| `./scripts/use-env.sh aws` / `pnpm aws:prod`      | Clears `AWS_ENDPOINT_URL` so SDKs use real AWS                                                                                               |
+| `./scripts/use-env.sh status` / `pnpm aws:status` | Shows current mode                                                                                                                           |
+| `./scripts/floci-aws.sh <cmd>`                    | Runs an AWS CLI command against Floci                                                                                                        |
+| `pnpm floci:start` / `pnpm floci:stop`            | Start / stop Floci + UI compose stack                                                                                                        |
+| `pnpm floci:seed`                                 | Create demo resources (buckets, tables, queues, secrets, EKS cluster, RDS)                                                                   |
+| `pnpm floci:logs` / `pnpm floci:ui`               | Tail emulator logs / open web console                                                                                                        |
 
 > Every script is documented in [Scripts & Tooling](./scripts-and-tooling.md) — but you
 > generally only need `./scripts/deploy.sh`.
@@ -230,7 +242,7 @@ Import the shared AWS config service — it auto-detects the mode from env:
 import { AwsConfigService } from '@app/aws';
 
 // Injected into any provider
-const s3 = this.aws.createS3Client();        // points at Floci or real AWS automatically
+const s3 = this.aws.createS3Client(); // points at Floci or real AWS automatically
 const sqs = this.aws.createSqsClient();
 const secrets = this.aws.createSecretsManagerClient();
 ```
@@ -247,7 +259,7 @@ Only these five variables drive it — flip them and the entire platform switche
 The platform is designed to avoid lock-in. Key principles:
 
 1. **The application layer is plain Kubernetes.** `k8s/` manifests, ConfigMaps, Secrets, and ArgoCD work on EKS, GKE, AKS, or any CNCF cluster — zero application changes.
-2. **Cloud-specific concerns live only in `infrastructure/`.** The AWS Terraform (`infrastructure/aws`) is the *only* place AWS appears. A future `infrastructure/gcp` or `infrastructure/azure` directory would provision the same Kubernetes manifests with provider-native managed services.
+2. **Cloud-specific concerns live only in `infrastructure/`.** The AWS Terraform (`infrastructure/aws`) is the _only_ place AWS appears. A future `infrastructure/gcp` or `infrastructure/azure` directory would provision the same Kubernetes manifests with provider-native managed services.
 3. **Data-plane endpoints are environment configuration.** Per-environment overlay ConfigMaps (`k8s/overlays/<env>/configmap-data.yml`) supply the DB/Redis/ES endpoints from each cloud's Terraform outputs — the app layer stays identical. This is what makes migration safe: point the overlay at the new cloud's managed endpoints and redeploy.
 4. **Configuration via environment.** All infra-specific values flow through ConfigMaps/Secrets, not hardcoded imports.
 

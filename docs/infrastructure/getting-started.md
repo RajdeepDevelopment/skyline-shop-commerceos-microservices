@@ -2,16 +2,31 @@
 
 This guide takes you from a clean machine to a running Skyline Shop stack — and then to AWS. The whole platform is containerized (63 containers on the full profile), so the only real prerequisites are Docker and a recent Node.js for local dev tooling.
 
+## Setup flow at a glance
+
+```mermaid
+flowchart TD
+    A[Prereqs: Docker + Compose v2, git, Node.js ≥ 18, pnpm ≥ 8] --> B[git clone + cp .env.example .env]
+    B --> C[./setup.sh guided installer]
+    C --> D{Mode: test or prod?}
+    D -->|test| E[Pick profile: lite / mid / full / custom]
+    D -->|prod| F[Deploy to AWS / Floci instead]
+    E --> G[Validate compose + rebuild app images]
+    G --> H[docker compose up -d]
+    H --> I[Bootstrap container seeds the catalog]
+    I --> J[Access UI at localhost:8080]
+```
+
 ---
 
 ## 0. Prerequisites
 
-| Tool | Version | Why |
-| :--- | :--- | :--- |
-| **Docker** + Compose v2 | any recent | Runs the entire stack (`docker compose` plugin required) |
-| **git** | any | Clone + repo tooling |
-| **Node.js** + **pnpm** | Node ≥ 18, pnpm ≥ 8 | Local dev / scripts (optional for pure Docker run) |
-| **Terraform** (optional) | ≥ 1.5 | Real AWS provisioning |
+| Tool                     | Version             | Why                                                      |
+| :----------------------- | :------------------ | :------------------------------------------------------- |
+| **Docker** + Compose v2  | any recent          | Runs the entire stack (`docker compose` plugin required) |
+| **git**                  | any                 | Clone + repo tooling                                     |
+| **Node.js** + **pnpm**   | Node ≥ 18, pnpm ≥ 8 | Local dev / scripts (optional for pure Docker run)       |
+| **Terraform** (optional) | ≥ 1.5               | Real AWS provisioning                                    |
 
 Install checks are performed by `./setup.sh` automatically (it can even start the Docker daemon for you).
 
@@ -32,12 +47,12 @@ cp .env.example .env        # setup.sh does this for you if missing
 1. **Mode** — `test` (run locally with Docker Compose) or `prod` (deploy to AWS / Floci).
 2. **Profile** — how big a stack you want:
 
-| Profile | Containers | Contents |
-| :--- | :--- | :--- |
-| `lite` | ~14 | No shards/replicas/ES/observability — for low-end devices. 1,000 products. |
-| `mid` | ~38 | Balanced dev stack: shards + replicas, single-node ES + Kibana, pgAdmin, RedisInsight, nginx LB. 5,000 products. |
-| `full` | 63 | Everything (identical to `docker compose up -d`). 10,000 products, full observability. |
-| `custom` | you pick | Choose shard counts, replicas, ES nodes, NATS nodes, PgBouncer, nginx, GUIs, observability, seed count. |
+| Profile  | Containers | Contents                                                                                                         |
+| :------- | :--------- | :--------------------------------------------------------------------------------------------------------------- |
+| `lite`   | ~14        | No shards/replicas/ES/observability — for low-end devices. 1,000 products.                                       |
+| `mid`    | ~38        | Balanced dev stack: shards + replicas, single-node ES + Kibana, pgAdmin, RedisInsight, nginx LB. 5,000 products. |
+| `full`   | 63         | Everything (identical to `docker compose up -d`). 10,000 products, full observability.                           |
+| `custom` | you pick   | Choose shard counts, replicas, ES nodes, NATS nodes, PgBouncer, nginx, GUIs, observability, seed count.          |
 
 3. **Postgres password** — keep default `password` (dev) or set your own.
 
@@ -87,19 +102,19 @@ pnpm seed:verify   # checks seed consistency across stores
 
 ### URLs after a `full` stack boots
 
-| Service | URL |
-| :--- | :--- |
-| Web shop (UI) | http://localhost:8080 |
-| API gateway (health) | http://localhost:3000/api/v1/health |
-| Swagger docs | http://localhost:3000/api/v1/docs |
-| Kibana | http://localhost:5601 |
-| pgAdmin | http://localhost:5050 (admin@skyline.dev) |
-| RedisInsight | http://localhost:8001 |
-| Jaeger (traces) | http://localhost:16686 |
-| Prometheus | http://localhost:9090 |
-| Grafana | http://localhost:3100 (admin/admin) |
-| NATS | nats://localhost:4222 |
-| Postgres (master) | localhost:5435 (root / password) |
+| Service              | URL                                       |
+| :------------------- | :---------------------------------------- |
+| Web shop (UI)        | http://localhost:8080                     |
+| API gateway (health) | http://localhost:3000/api/v1/health       |
+| Swagger docs         | http://localhost:3000/api/v1/docs         |
+| Kibana               | http://localhost:5601                     |
+| pgAdmin              | http://localhost:5050 (admin@skyline.dev) |
+| RedisInsight         | http://localhost:8001                     |
+| Jaeger (traces)      | http://localhost:16686                    |
+| Prometheus           | http://localhost:9090                     |
+| Grafana              | http://localhost:3100 (admin/admin)       |
+| NATS                 | nats://localhost:4222                     |
+| Postgres (master)    | localhost:5435 (root / password)          |
 
 ### Test account
 
@@ -174,14 +189,14 @@ pnpm deploy:aws                # push to ECR, ArgoCD syncs k8s/overlays/producti
 
 ## 6. Troubleshooting
 
-| Symptom | Fix |
-| :--- | :--- |
-| Setup hangs on readiness | `docker compose logs -f bootstrap` — check the bootstrap exit code |
-| Elasticsearch unhealthy | Give the 3-node cluster time to form (green = all nodes); restart all 3 together: `docker compose restart elasticsearch1 elasticsearch2 elasticsearch3` |
-| Stale data / wrong results | `docker compose down -v && docker compose up -d` then let bootstrap re-seed |
-| Port already in use | Change the host mapping in the compose file, or pick `lite` profile |
-| Products missing from search | `pnpm seed:es` to re-index, or `docker compose restart bootstrap` |
-| Old images | `./setup.sh` rebuilds app images; or `docker compose build <service>` |
+| Symptom                      | Fix                                                                                                                                                     |
+| :--------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Setup hangs on readiness     | `docker compose logs -f bootstrap` — check the bootstrap exit code                                                                                      |
+| Elasticsearch unhealthy      | Give the 3-node cluster time to form (green = all nodes); restart all 3 together: `docker compose restart elasticsearch1 elasticsearch2 elasticsearch3` |
+| Stale data / wrong results   | `docker compose down -v && docker compose up -d` then let bootstrap re-seed                                                                             |
+| Port already in use          | Change the host mapping in the compose file, or pick `lite` profile                                                                                     |
+| Products missing from search | `pnpm seed:es` to re-index, or `docker compose restart bootstrap`                                                                                       |
+| Old images                   | `./setup.sh` rebuilds app images; or `docker compose build <service>`                                                                                   |
 
 ---
 

@@ -2,6 +2,30 @@
 
 The **Payment Service** handles financial transactions and integrates with third-party payment providers.
 
+## 🗺️ Payment Flow
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant S as Saga Orchestrator
+    participant P as Payment Service
+    participant RD as Redis (Idempotency)
+    participant G as Payment Gateway
+
+    S->>P: ProcessPayment(orderId, amount, idempotencyKey)
+    P->>RD: Check idempotencyKey
+    alt New request
+        RD-->>P: Not found
+        P->>G: Charge (tokenized card)
+        G-->>P: success
+        P->>RD: Store idempotencyKey + result
+        P-->>S: payment.success
+    else Retry / duplicate
+        RD-->>P: Cached result
+        P-->>S: Cached result (no double charge)
+    end
+```
+
 ## 🛠️ Tech Stack
 
 - **Framework**: NestJS

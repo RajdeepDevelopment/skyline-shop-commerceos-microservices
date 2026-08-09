@@ -18,6 +18,21 @@ Most developers start with a **Monolith**. In this repo, we simulate the "Modula
 - **Shared Types**: Using the `common` library across all modules.
 - **Database Basics**: Understanding how Prisma interacts with PostgreSQL.
 
+### Diagram
+
+```mermaid
+graph LR
+  MONO["Monolith"] -->|"modularize in pnpm monorepo"| MOD["NestJS modules"]
+  MOD --> U["User"]
+  MOD --> P["Product"]
+  MOD --> O["Order"]
+  MOD --> C["common library (shared types)"]
+  C --> U & P & O
+  U --> DB["PostgreSQL via Prisma"]
+  P --> DB
+  O --> DB
+```
+
 ---
 
 [➡️ Next: Intermediate Path](./intermediate.md) | [⬅️ Back to Roadmap](./engineering-roadmap.md)
