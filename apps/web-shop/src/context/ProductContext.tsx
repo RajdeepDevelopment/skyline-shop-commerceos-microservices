@@ -1,16 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
-export interface Product {
-  id: string;
-  title: string;
-  description: string;
-  price: number;
-  rating: number;
-  stock: number;
-  category: string;
-  thumbnail: string;
-  images: string[];
-}
+import { Product } from '../modules/products/types/product.types';
 
 interface CartItem extends Product {
   quantity: number;
@@ -45,29 +34,10 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [cart]);
 
   useEffect(() => {
-    import('../api/apiClient').then(({ apiClient }) => {
-      apiClient<{ products: any[] }>('/products')
+    void import('../api/apiClient').then(({ apiClient }) => {
+      apiClient<{ products: Product[] }>('/products')
         .then((data) => {
-          // Map DB products to the frontend interface format since images/ratings aren't in the DB schema
-          const mappedProducts: Product[] = data.products.map((p) => ({
-            id: p.id,
-
-            title: p.name,
-
-            description: p.description || '',
-
-            price: parseFloat(p.price) || 0,
-            rating: 4.5, // Mock rating
-            stock: 100, // Mock stock
-
-            category: p.categoryId || 'General',
-            // Provide a reliable fallback image
-
-            thumbnail: `https://picsum.photos/seed/${p.sku}/300/300`,
-
-            images: [`https://picsum.photos/seed/${p.sku}/600/600`],
-          }));
-          setProducts(mappedProducts);
+          setProducts(data.products);
           setLoading(false);
         })
         .catch((err) => {

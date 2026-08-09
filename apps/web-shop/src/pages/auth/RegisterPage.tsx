@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
-import { Mail, Lock, User, ArrowRight, Loader2 } from 'lucide-react';
-import { useAuthStore } from '../../modules/auth/stores/auth.store';
+import { motion } from 'motion/react';
+import { Mail, Lock, User, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
+import { useAuthStore } from '@/modules/auth/stores/auth.store';
+import { Input } from '@/components/ui/input';
 
-const RegisterPage = () => {
+export default function RegisterPage() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
@@ -25,123 +26,120 @@ const RegisterPage = () => {
     e.preventDefault();
     setError('');
     setIsSubmitting(true);
-
     try {
       await register(formData);
-      navigate('/', { replace: true });
-    } catch (err: any) {
-      setError(err.message || 'Failed to register');
+      navigate('/login', { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to register');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+    <div className="relative flex min-h-[80vh] items-center justify-center px-4 py-16">
+      <div className="pointer-events-none absolute inset-0 bg-grid opacity-40" />
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md bg-slate-900 border border-slate-800 rounded-3xl p-8 shadow-2xl"
+        transition={{ duration: 0.4 }}
+        className="relative w-full max-w-md rounded-3xl border border-border bg-card p-8 shadow-2xl"
       >
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Create Account</h1>
-          <p className="text-slate-400">Join our premium ecommerce platform</p>
+        <div className="text-center">
+          <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-primary text-xl font-bold text-primary-foreground shadow-lg shadow-primary/25">
+            S
+          </span>
+          <h1 className="mt-4 text-2xl font-bold text-foreground">Create Account</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Join SkylineShop and start shopping smarter
+          </p>
         </div>
+
         {error && (
-          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm text-center">
+          <div className="mt-6 rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium text-destructive">
             {error}
           </div>
         )}
-        // eslint-disable-next-line @typescript-eslint/no-misused-promises
-        <form onSubmit={handleSubmit} className="space-y-5">
+
+        <form onSubmit={(e) => void handleSubmit(e)} className="mt-6 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">First Name</label>
-              <div className="relative">
-                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
-                <input
-                  type="text"
-                  name="firstName"
-                  required
-                  value={formData.firstName}
-                  onChange={handleChange}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
-                  placeholder="John"
-                />
-              </div>
+              <label className="mb-1.5 block text-sm font-medium text-foreground">First Name</label>
+              <Input
+                name="firstName"
+                required
+                value={formData.firstName}
+                onChange={handleChange}
+                placeholder="John"
+                adornment={<User />}
+              />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-300 mb-2">Last Name</label>
-              <div className="relative">
-                <input
-                  type="text"
-                  name="lastName"
-                  required
-                  value={formData.lastName}
-                  onChange={handleChange}
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 px-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
-                  placeholder="Doe"
-                />
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Email Address</label>
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
-              <input
-                type="email"
-                name="email"
+              <label className="mb-1.5 block text-sm font-medium text-foreground">Last Name</label>
+              <Input
+                name="lastName"
                 required
-                value={formData.email}
+                value={formData.lastName}
                 onChange={handleChange}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
-                placeholder="you@example.com"
+                placeholder="Doe"
               />
             </div>
           </div>
-
           <div>
-            <label className="block text-sm font-medium text-slate-300 mb-2">Password</label>
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 w-5 h-5" />
-              <input
-                type="password"
-                name="password"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:ring-2 focus:ring-primary-500/50 focus:border-primary-500 transition-all"
-                placeholder="••••••••"
-                minLength={8}
-              />
-            </div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">
+              Email Address
+            </label>
+            <Input
+              type="email"
+              name="email"
+              required
+              value={formData.email}
+              onChange={handleChange}
+              placeholder="you@example.com"
+              adornment={<Mail />}
+            />
+          </div>
+          <div>
+            <label className="mb-1.5 block text-sm font-medium text-foreground">Password</label>
+            <Input
+              type="password"
+              name="password"
+              required
+              minLength={8}
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="At least 8 characters"
+              adornment={<Lock />}
+            />
           </div>
 
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-primary-600 hover:bg-primary-500 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primary-500/25 transition-all flex items-center justify-center gap-2 mt-2 disabled:opacity-70 disabled:cursor-not-allowed"
+            className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-bold text-primary-foreground shadow-lg shadow-primary/25 transition-all hover:bg-primary/90 disabled:opacity-70"
           >
             {isSubmitting ? (
-              <Loader2 className="w-5 h-5 animate-spin" />
+              <Loader2 className="size-5 animate-spin" />
             ) : (
               <>
-                Create Account <ArrowRight className="w-5 h-5" />
+                Create Account <ArrowRight className="size-4" />
               </>
             )}
           </button>
         </form>
-        <p className="mt-8 text-center text-slate-400">
+
+        <div className="mt-5 flex items-center gap-2 text-xs text-muted-foreground">
+          <ShieldCheck className="size-4 shrink-0 text-success" /> By creating an account you agree
+          to our Terms & Privacy Policy
+        </div>
+
+        <p className="mt-6 text-center text-sm text-muted-foreground">
           Already have an account?{' '}
-          <Link to="/login" className="text-primary-400 hover:text-primary-300 font-medium">
+          <Link to="/login" className="font-semibold text-primary hover:underline">
             Sign in
           </Link>
         </p>
       </motion.div>
     </div>
   );
-};
-
-export default RegisterPage;
+}

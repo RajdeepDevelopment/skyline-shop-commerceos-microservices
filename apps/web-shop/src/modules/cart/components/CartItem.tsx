@@ -2,6 +2,7 @@ import React from 'react';
 import { Minus, Plus, Trash2 } from 'lucide-react';
 import Button from '../../../common/ui/button';
 import { CartItem as CartItemType } from '../types/cart.types';
+import { toPrice } from '../../../lib/utils';
 
 interface CartItemComponentProps {
   item: CartItemType;
@@ -28,13 +29,13 @@ const CartItemComponent: React.FC<CartItemComponentProps> = ({
     <div className="flex items-center space-x-4 p-4 border border-slate-200 rounded-lg">
       <img
         src={item.product.images[0] || '/placeholder-product.jpg'}
-        alt={item.product.name}
+        alt={item.product.title}
         className="w-20 h-20 object-cover rounded-md"
       />
 
       <div className="flex-1">
-        <h3 className="font-medium text-slate-900">{item.product.name}</h3>
-        <p className="text-slate-500">${item.product.price.toFixed(2)}</p>
+        <h3 className="font-medium text-slate-900">{item.product.title}</h3>
+        <p className="text-slate-500">${toPrice(item.product.price).toFixed(2)}</p>
         {!item.product.inStock && <p className="text-red-500 text-sm">Out of stock</p>}
       </div>
 
@@ -62,7 +63,7 @@ const CartItemComponent: React.FC<CartItemComponentProps> = ({
 
       <div className="text-right">
         <p className="font-medium text-slate-900">
-          ${(item.product.price * item.quantity).toFixed(2)}
+          ${(toPrice(item.product.price) * item.quantity).toFixed(2)}
         </p>
       </div>
 

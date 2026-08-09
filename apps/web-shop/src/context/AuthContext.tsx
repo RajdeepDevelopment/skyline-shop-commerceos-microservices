@@ -25,7 +25,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const initAuth = async () => {
+    const initAuth = () => {
       const storedToken = localStorage.getItem('token');
       if (storedToken) {
         try {
