@@ -239,6 +239,18 @@ Propel your skills through our context-driven learning trajectory:
 
 ## 📈 Scale & Performance Targets
 
+For a detailed breakdown of the scaling architecture, see [scaling-summary.md](./scaling-summary.md) and the accompanying diagram [scaling-diagram.md](./scaling-diagram.md).
+
+
+| Dimension                | Target                    | How It's Achieved                                               |
+| :----------------------- | :------------------------ | :-------------------------------------------------------------- |
+| **Registered users**     | **10M+**                  | Stateless services, JWT sessions, sharded identity stores.      |
+| **Product catalog**      | **1M+ SKUs**              | 4-way PostgreSQL sharding + Elasticsearch indexing.             |
+| **Concurrent sessions**  | **10k+**                  | Horizontal service scaling behind nginx + Redis session cache.  |
+| **Order throughput**     | Thousands of orders / min | NATS JetStream buffering + Saga orchestration with idempotency. |
+| **Search latency**       | < 100 ms p99              | 3-node Elasticsearch cluster with ranked queries & caching.     |
+| **Checkout consistency** | Exactly-once              | Idempotency keys, outbox pattern, and saga compensation.        |
+
 | Dimension                | Target                    | How It's Achieved                                               |
 | :----------------------- | :------------------------ | :-------------------------------------------------------------- |
 | **Registered users**     | **10M+**                  | Stateless services, JWT sessions, sharded identity stores.      |
